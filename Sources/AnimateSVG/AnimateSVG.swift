@@ -1,34 +1,42 @@
+/// Client facing APIs.
 
 import SwiftUI
 
-struct SVGAnimationView: View {
-	var svgUrl: URL = URL(fileURLWithPath: #file).deletingLastPathComponent().appendingPathComponent("Resources/gingerSkeletonTest0.svg") // Fix later as init input
+public struct SVGAnimationView: View {
+	public let svgURL: URL
+	public let skeletonStructure: Joint?
 	
 	@State var animationLoaded: Bool = false
 	@State var animationStarted: Bool = false
 	@State var animationFinished: Bool = false
 	
-	var body: some View {
-		Text("Test")
-//		AnimatedLayerViewRepresentable(
-//			closureAnimationLoaded: { animationLoaded = true },
-//			svgUrl: svgUrl
-//		)
+	public init(svgURL: URL, skeletonStructure: Joint?) {
+		self.svgURL = svgURL
+		if let skeleton = skeletonStructure {
+			self.skeletonStructure = skeleton
+		} else {
+			// Need to fix this up, if there's no skeleton structure and you want to have a free scene, should do more
+			self.skeletonStructure = Joint(id: 0, directedChildren: [])
+		}
+	}
+	
+	public var body: some View {
+		AnimatedLayerViewRepresentable(
+			svgUrl: svgURL,
+			skeletonStructure: skeletonStructure!,
+			closureAnimationLoaded: { animationLoaded = true }
+		)
 	}
 }
 
-struct SVGSkeletonAnimationView: View {
-	var svgUrl: URL = URL(fileURLWithPath: #file).deletingLastPathComponent().appendingPathComponent("Resources/gingerSkeletonTest0.svg") // Fix later as init input
-	var skeletonStructure: [Int: Any]
+/// A tree node for the skeletal structure
+public class Joint {
+	let id: Int
+	let directedChildren: [Joint]
+	var position: CGPoint?
 	
-	@State var animationLoaded: Bool = false
-	@State var animationStarted: Bool = false
-	@State var animationFinished: Bool = false
-	
-	var body: some View {
-		AnimatedLayerViewRepresentable(
-			closureAnimationLoaded: { animationLoaded = true },
-			svgUrl: svgUrl
-		)
+	public init(id: Int, directedChildren: [Joint]) {
+		self.id = id
+		self.directedChildren = directedChildren
 	}
 }

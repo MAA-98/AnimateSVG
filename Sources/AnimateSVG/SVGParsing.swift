@@ -1,45 +1,21 @@
-
 import Foundation
 import QuartzCore
 
-// Humanoid skeleton structure for animation of Ginger
-class Joint {
-	let id: Int
-	let directedChildren: [Joint]
-	var position: CGPoint?
-	
-	init(id: Int, directedChildren: [Joint]) {
-		self.id = id
-		self.directedChildren = directedChildren
+func SVGtoCALayer(url: URL, skeletonStructure: Joint, closureOnFinish: @escaping (CALayer) -> Void) throws -> Void {
+	do {
+		let (stream, parser) = try SVGParserFromFile(fileURL: url)
+		let parserDelegate = SVGParserDelegate(skeletonStructure: skeletonStructure, closureOnFinish: { animationLayer in
+			closureOnFinish(animationLayer)
+			stream.close()
+		})
+		parser.delegate = parserDelegate
+		stream.open()
+		parser.parse()
+	} catch {
+		print("Error parsing SVG: \(error)")
 	}
 }
 
-func gingerSkeleton() -> Joint {
-	let gingerSkeleton =
-	Joint(id: 11, directedChildren:
-			[Joint(id: 10, directedChildren:
-					[Joint(id: 1, directedChildren:
-							[Joint(id: 0, directedChildren: []),
-							 Joint(id: 2, directedChildren:
-									[Joint(id: 4, directedChildren:
-											[Joint(id: 6, directedChildren:
-													[Joint(id: 8, directedChildren: [])])])]),
-							 Joint(id: 3, directedChildren:
-									[Joint(id: 5, directedChildren:
-											[Joint(id: 7, directedChildren:
-													[Joint(id: 9, directedChildren: [])])])])])]),
-			 Joint(id: 12, directedChildren: [
-				Joint(id: 14, directedChildren: [
-					Joint(id: 16, directedChildren: [
-						Joint(id: 18, directedChildren: [])])])]),
-			 Joint(id: 13, directedChildren: [
-				Joint(id: 15, directedChildren: [
-					Joint(id: 17, directedChildren: [
-						Joint(id: 19, directedChildren: [])])])])])
-	return gingerSkeleton
-}
-
-// Parser creation
 enum SVGParserFromFileError: Error {
 	case fileNotFound
 	case invalidFileType
@@ -47,7 +23,6 @@ enum SVGParserFromFileError: Error {
 }
 
 func SVGParserFromFile(fileURL: URL) throws -> (InputStream, XMLParser) {
-	
 	// Check if the file exists at the provided URL
 	guard FileManager.default.fileExists(atPath: fileURL.path) else {
 		throw SVGParserFromFileError.fileNotFound
@@ -60,25 +35,24 @@ func SVGParserFromFile(fileURL: URL) throws -> (InputStream, XMLParser) {
 	guard let inputStream = InputStream(url: fileURL) else {
 		throw SVGParserFromFileError.inputStreamCreationError
 	}
-	
 	// Initialize the XMLParser with InputStream
 	let parser = XMLParser(stream: inputStream)
-	
-	// Return the inputStream (for opening and closing) and parser
+	// Return the inputStream and parser
 	return (inputStream, parser)
 }
 
 // Functions for the parser building up Core Animation
 class SVGParserDelegate: NSObject, XMLParserDelegate {
+	private var skeletonStructure: Joint
 	private var closureOnFinish: ((CALayer) -> Void)
-	init(closureOnFinish: @escaping ((CALayer) -> Void)) {
+	init(skeletonStructure: Joint, closureOnFinish: @escaping ((CALayer) -> Void)) {
 		self.closureOnFinish = closureOnFinish
+		self.skeletonStructure = skeletonStructure
 	}
 	
 	var rootLayer: CALayer? = nil
 	var currentLayer: CALayer? = nil
 	var layerDict: [[Int] : CALayer] = [:]
-	var sourceJoint: Joint? = nil
 	var zIndex: CGFloat = 0
 	
 	// Enable debug output for testing
@@ -134,8 +108,11 @@ class SVGParserDelegate: NSObject, XMLParserDelegate {
 		}
 		if elementName == "path" {
 			if attributeDict["id"] == "skeletonPath" {
-				// Pull joint structure
-				sourceJoint = gingerSkeleton()
+				// Build skeleton here, test by drawing circle in origin
+				
+				// Create layer with circle at origin
+				
+				
 				// Pull path attribute and set into absolute positions, type [CGPoint], length 20 expected
 				let skeletonPoints = pathPoints(attributeDict["d"]!)
 				// Create a "layer skeleton" from the two info
@@ -148,7 +125,7 @@ class SVGParserDelegate: NSObject, XMLParserDelegate {
 						}
 					}
 				}
-				createSkeletonLayer(sourceJoint: sourceJoint!, positions: skeletonPoints)
+				createSkeletonLayer(sourceJoint: skeletonStructure, positions: skeletonPoints)
 			} else {
 //				let pathCAShapeLayer = addPathStyle(path: oldConvertPath(attributeDict["d"]!), pathStyle: attributeDict["style"]!)
 //				if let name = attributeDict["id"] {

@@ -4,19 +4,20 @@ import UIKit
 
 // A wrapper for a UIView to integrate into SwiftUI
 struct AnimatedLayerViewRepresentable: UIViewRepresentable {
-	
-	// Closures for updating SwiftUI View
-	private let closureAnimationLoaded: (() -> Void)
 	private var svgUrl: URL
-	init(closureAnimationLoaded: @escaping (() -> Void), svgUrl: URL) {
-		self.closureAnimationLoaded = closureAnimationLoaded
+	private var skeletonStructure: Joint
+	private let closureAnimationLoaded: (() -> Void)
+	
+	init(svgUrl: URL, skeletonStructure: Joint, closureAnimationLoaded: @escaping (() -> Void)) {
 		self.svgUrl = svgUrl
+		self.skeletonStructure = skeletonStructure
+		self.closureAnimationLoaded = closureAnimationLoaded
 	}
 	
 	func makeUIView(context: Context) -> UIView {
 		let view = UIView()
 		do {
-			try SVGtoCALayer(url: svgUrl, closureOnFinish: { animationLayer in
+			try SVGtoCALayer(url: svgUrl, skeletonStructure: skeletonStructure, closureOnFinish: { animationLayer in
 				DispatchQueue.main.async { // Ensure UI updates are on the main thread
 					view.layer.addSublayer(animationLayer)
 					closureAnimationLoaded()
@@ -87,22 +88,6 @@ struct AnimatedLayerViewRepresentable: UIViewRepresentable {
 //		// Return the size that fits your requirements here.
 //		return CGSize(width: 100, height: 100) // Example size
 //	}
-}
-
-func SVGtoCALayer(url: URL, closureOnFinish: @escaping (CALayer) -> Void) throws -> Void {
-	do {
-		let (stream, parser) = try SVGParserFromFile(fileURL: url)
-		let parserDelegate = SVGParserDelegate(closureOnFinish: { animationLayer in
-			closureOnFinish(animationLayer)
-			stream.close()
-		})
-		parser.delegate = parserDelegate
-		// Open the stream and parse
-		stream.open()
-		parser.parse()
-	} catch {
-		print("Error parsing SVG: \(error)")
-	}
 }
 
 extension CALayer {
