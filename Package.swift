@@ -5,12 +5,17 @@ import PackageDescription
 
 let package = Package(
     name: "AnimateSVG",
+	platforms: [
+		.iOS(.v14), // adjust according to your needs
+		.macOS(.v11) // adjust according to your needs
+	],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
             name: "AnimateSVG",
             targets: ["AnimateSVG"]),
     ],
+	dependencies: [],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
