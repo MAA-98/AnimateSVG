@@ -23,7 +23,7 @@ struct AnimatedLayerViewRepresentable: UIViewRepresentable {
 					closureAnimationLoaded()
 					// SVG is loaded, but not animation?
 					// Probably make another function to call with closure to return animation data here
-					let rotLayer = animationLayer.findLayer(withName: "svg1")
+					let rotLayer = animationLayer.findLayer(withName: "4")
 					context.coordinator.startAnimation(for: rotLayer!)
 				}
 			})
@@ -48,7 +48,7 @@ struct AnimatedLayerViewRepresentable: UIViewRepresentable {
 			
 			// Set the starting rotation angle (in radians)
 			animation.fromValue = 0 // Start at 0 radians (no rotation)
-			animation.toValue = -Double.pi/10 // Rotate to 2π radians (360 degrees)
+			animation.toValue = 2*Double.pi // Rotate to 2π radians (360 degrees)
 			
 			// Set animation duration
 			animation.duration = 10.0 // Duration of rotation

@@ -1,5 +1,6 @@
 import Foundation
 import QuartzCore
+import UIKit // temp for drawing shape
 
 func SVGtoCALayer(url: URL, skeletonStructure: Joint, closureOnFinish: @escaping (CALayer) -> Void) throws -> Void {
 	do {
@@ -51,6 +52,7 @@ class SVGParserDelegate: NSObject, XMLParserDelegate {
 	}
 	
 	var rootLayer: CALayer? = nil
+	var skeletonPoints: [CGPoint]? = nil
 	var currentLayer: CALayer? = nil
 	var layerDict: [[Int] : CALayer] = [:]
 	var zIndex: CGFloat = 0
@@ -87,54 +89,35 @@ class SVGParserDelegate: NSObject, XMLParserDelegate {
 //			scene = SKScene(size: CGSize(width: viewBox[2]!-viewBox[0]!, height: viewBox[3]!-viewBox[1]!))
 		}
 		if elementName == "g" {
-//			let groupLayer = CALayer()
-//			if let name = attributeDict["id"] {
-//				groupLayer.name = name
-//			}
-//			if let transform = attributeDict["transform"] {
-//				groupLayer.svgTransformString(transform)
-//			}
-//			// Change position and anchorPoint here ----------------------------------------------------------------------------------
-//			// TO ADD HERE ----------------------------------------------------------------------------------------------------------------
-//			groupLayer.positionTransform(CGPoint(x: 0, y: 250))
-//
-//			// Set z depth by its ordering in the SVG
-//			groupLayer.zPosition = zIndex
-//			zIndex += 1
-//			// Add to dict of layers
-//			let key = groupLayer.name!.split(separator: "-").compactMap{ Int($0) }
-//			layerDict.updateValue(groupLayer, forKey: key)
-//			currentLayer = groupLayer
+			let groupLayer = CALayer()
+			if let name = attributeDict["id"] {
+				groupLayer.name = name
+			}
+			if let transform = attributeDict["transform"] {
+				groupLayer.svgTransformString(transform)
+			}
+			groupLayer.positionTransform(CGPoint(x: 0, y: 250))
+			// Set z depth by its ordering in the SVG
+			groupLayer.zPosition = zIndex
+			zIndex += 1
+			// Add to dict of layers
+			let key = groupLayer.name!.split(separator: "-").compactMap{ Int($0) }
+			layerDict.updateValue(groupLayer, forKey: key)
+			currentLayer = groupLayer
 		}
 		if elementName == "path" {
 			if attributeDict["id"] == "skeletonPath" {
-				// Build skeleton here, test by drawing circle in origin
-				
-				// Create layer with circle at origin
-				
-				
 				// Pull path attribute and set into absolute positions, type [CGPoint], length 20 expected
-				let skeletonPoints = pathPoints(attributeDict["d"]!)
-				// Create a "layer skeleton" from the two info
-				func createSkeletonLayer(sourceJoint: Joint, positions: [CGPoint]) {
-					sourceJoint.position = positions[sourceJoint.id]
-					let children = sourceJoint.directedChildren
-					if !children.isEmpty {
-						for child in children {
-							createSkeletonLayer(sourceJoint: child, positions: positions)
-						}
-					}
-				}
-				createSkeletonLayer(sourceJoint: skeletonStructure, positions: skeletonPoints)
+				skeletonPoints = pathPoints(attributeDict["d"]!) // Could check here same length as the skeletonStructure
 			} else {
-//				let pathCAShapeLayer = addPathStyle(path: oldConvertPath(attributeDict["d"]!), pathStyle: attributeDict["style"]!)
-//				if let name = attributeDict["id"] {
-//					pathCAShapeLayer.name = name
-//				}
-//				if let transform = attributeDict["transform"] {
-//					pathCAShapeLayer.svgTransformString(transform)
-//				}
-//				currentLayer!.addSublayer(pathCAShapeLayer)
+				let pathCAShapeLayer = addPathStyle(path: oldConvertPath(attributeDict["d"]!), pathStyle: attributeDict["style"]!)
+				if let name = attributeDict["id"] {
+					pathCAShapeLayer.name = name
+				}
+				if let transform = attributeDict["transform"] {
+					pathCAShapeLayer.svgTransformString(transform)
+				}
+				currentLayer!.addSublayer(pathCAShapeLayer)
 			}
 		}
 	}
@@ -153,31 +136,36 @@ class SVGParserDelegate: NSObject, XMLParserDelegate {
 	// End of document
 	func parserDidEndDocument(_ parser: XMLParser) {
 		if debug {
-			print("debugConsole: (Parent, Element): ", debugConsole)
+			//print("debugConsole: (Parent, Element): ", debugConsole)
 		}
-		// Join up the layers here, using known skeleton data, have to wait for all the layers to be created--------------------------------------------------------------------------
-//		func drawLayersRecursive(_ superLayer: CALayer, sourceJoint: Joint) {
-//			let children = sourceJoint.directedChildren
-//			for child in children {
-//				layersDict(superLayer.name)
-//			}
-//			
-//			for (key, value) in layerDict {
-//				if key.first == sourceJointID {
-//					superLayer.addSublayer(value)
-//					drawLayersRecursive(value, sourceJointID: key[1])
-//				}
-//			}
-//		}
-//		drawLayersRecursive(rootLayer, sourceJoint: sourceJoint)
-		
-		
-
-		
-//		for layer in layerDict.values {
-//			rootLayer?.addSublayer(layer)
-//			// TO ADD HERE ----------------------------------------------------------------------------------------------------------------
-//		}
+		let radius: CGFloat = 10.0
+		let center = CGPoint(x: 0, y: 0)
+		let circlePath = UIBezierPath(arcCenter: center, radius: radius, startAngle: 0, endAngle: 2 * CGFloat.pi, clockwise: true)
+		// ADD LAYERS TO FUNCTION ------------------------------------------------------------------------------------------------------------------
+		func createSkeletonLayer(joint: Joint, parentJoint: Joint?, parentLayer: CALayer) {
+			joint.position = skeletonPoints![joint.id] // Parent scope captured
+			
+			let jointLayer = CAShapeLayer()
+			jointLayer.anchorPoint = CGPoint(x: 0, y: 0)
+			jointLayer.name = String(joint.id)
+			jointLayer.path = circlePath.cgPath
+			
+			// Calculate position relative to the parent joint's position
+			let parentX = parentJoint?.position?.x ?? 0
+			let parentY = parentJoint?.position?.y ?? 0
+			jointLayer.position = CGPoint(
+				x: joint.position!.x - parentX,
+				y: joint.position!.y - parentY
+			)
+			parentLayer.addSublayer(jointLayer)
+			let children = joint.directedChildren
+			if !children.isEmpty {
+				for child in children {
+					createSkeletonLayer(joint: child, parentJoint: joint, parentLayer: jointLayer)
+				}
+			}
+		}
+		createSkeletonLayer(joint: skeletonStructure, parentJoint: nil, parentLayer: rootLayer!)
 		closureOnFinish(rootLayer!)
 	}
 
