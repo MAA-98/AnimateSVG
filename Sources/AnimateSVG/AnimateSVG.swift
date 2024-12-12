@@ -33,6 +33,7 @@ public struct SVGAnimationView: View {
 public class Joint {
 	let id: Int
 	let directedChildren: [Joint]
+	var parent : Joint?
 	var position: CGPoint?
 	
 	public init(id: Int, directedChildren: [Joint]) {

@@ -23,8 +23,10 @@ struct AnimatedLayerViewRepresentable: UIViewRepresentable {
 					closureAnimationLoaded()
 					// SVG is loaded, but not animation?
 					// Probably make another function to call with closure to return animation data here
-					let rotLayer = animationLayer.findLayer(withName: "4")
-					context.coordinator.startAnimation(for: rotLayer!)
+					let rotLayer = animationLayer.findLayer(withName: "6")
+					if let layer = rotLayer {
+						context.coordinator.startAnimation(for: layer)
+					}
 				}
 			})
 		} catch {
@@ -43,15 +45,16 @@ struct AnimatedLayerViewRepresentable: UIViewRepresentable {
 		
 		// To start the animation
 		func startAnimation(for layer: CALayer) {
-			// Create a basic animation for rotation around the z-axis
-			let animation = CABasicAnimation(keyPath: "transform.rotation.z")
-			
-			// Set the starting rotation angle (in radians)
-			animation.fromValue = 0 // Start at 0 radians (no rotation)
-			animation.toValue = 2*Double.pi // Rotate to 2π radians (360 degrees)
-			
-			// Set animation duration
-			animation.duration = 10.0 // Duration of rotation
+			// Create a keyframe animation for rotation around the z-axis
+			let animation = CAKeyframeAnimation(keyPath: "transform.rotation.z")
+
+			// Define the keyframes for clockwise and counterclockwise rotations
+			animation.values = [Double.pi/2, 3*Double.pi / 4, Double.pi/2, 3*Double.pi / 4, Double.pi/2]
+
+			// Specify the duration for each keyframe (3 seconds for a full cycle)
+			animation.keyTimes = [0, 0.25, 0.5, 0.75, 1] // Corresponds to 0%, 25%, 50%, 75%, 100%
+			animation.duration = 6.0 // Total duration for one complete loop
+			animation.repeatCount = .infinity // Loop infinitely
 			
 			// Configure animation behavior
 			animation.fillMode = .forwards // Keep the final state after animation
