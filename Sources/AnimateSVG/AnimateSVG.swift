@@ -2,6 +2,7 @@
 
 import SwiftUI
 
+/// SwiftUI integration
 public struct SVGAnimationView: View {
 	public let svgURL: URL
 	public let skeletonStructure: Joint?
