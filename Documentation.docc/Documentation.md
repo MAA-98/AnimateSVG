@@ -38,6 +38,6 @@ with the svgURL being Foundation's URL struct of a file with extension '.svg'. T
 
 Parsing is done using an implementation of Foundation's XMLParser with InputStream. This is written in SVGParsing.swift and the methods of drawing the CGPaths are in PathConverter.swift. By default, the main CALayer is built with a buffered series of instructions:
 
-<img src="Resources/SVGParsing.swift" width="2410" height="804">
+<img src="Resources/SVGParsing.swift.png" width="2410" height="804">
 
 
