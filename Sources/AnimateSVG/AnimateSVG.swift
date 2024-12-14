@@ -29,7 +29,9 @@ public struct SVGAnimationView: View {
 			svgUrl: svgUrl,
 			skeletonStructure: skeletonStructure!,
 			closureAnimationLoaded: { animationLoaded = true },
-			clipsToBounds: clipsToBounds
+			clipsToBounds: clipsToBounds,
+			sizeScaleFactor: 1, // Temp
+			UISize: CGSize.zero // Temp
 		)
 	}
 }
@@ -38,20 +40,25 @@ public struct SVGSkeletonAnimationView: View {
 	public let svgUrl: URL
 	public let skeletonStructure: Joint
 	public let clipsToBounds: Bool
+	public var sizeScaleFactor: CGFloat
 	
-	public init(svgUrl: URL, skeletonStructure: Joint, clipsToBounds: Bool = false) {
+	public init(svgUrl: URL, skeletonStructure: Joint, clipsToBounds: Bool = false, sizeScaleFactor: CGFloat = 1) {
 		self.svgUrl = svgUrl
 		self.skeletonStructure = skeletonStructure
 		self.clipsToBounds = clipsToBounds
+		self.sizeScaleFactor = sizeScaleFactor
 	}
 	
 	public var body: some View {
-		AnimatedLayerViewRepresentable(
-			svgUrl: svgUrl,
-			skeletonStructure: skeletonStructure,
-			clipsToBounds: clipsToBounds
-			
-		)
+		GeometryReader { geometry in
+			AnimatedLayerViewRepresentable(
+				svgUrl: svgUrl,
+				skeletonStructure: skeletonStructure,
+				clipsToBounds: clipsToBounds,
+				sizeScaleFactor: sizeScaleFactor,
+				UISize: geometry.size
+			)
+		}
 	}
 }
 

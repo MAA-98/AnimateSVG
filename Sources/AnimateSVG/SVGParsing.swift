@@ -1,6 +1,5 @@
 import Foundation
 import QuartzCore
-import UIKit // temp for drawing shape
 
 func SVGtoCALayer(url: URL, skeletonStructure: Joint?, closureOnFinish: @escaping (CALayer) -> Void) throws -> Void {
 	do {
@@ -58,7 +57,7 @@ class SVGParserDelegate: NSObject, XMLParserDelegate {
 	var currentLayer: CALayer? = nil // Tracker for adding paths to layer
 	
 	// Enable debug output for testing
-	private var debug: Bool = true
+	private var debug: Bool = false
 	private var debugConsole: [String] = []
 	
 	// Start of document
@@ -74,7 +73,7 @@ class SVGParserDelegate: NSObject, XMLParserDelegate {
 			debugConsole.append(" \(elementName)")
 		}
 		if elementName == "svg" {
-			rootLayer = CALayer() // This layers sizing is 750x1000, inherited from the parent layer view in CAtoSwiftUIView
+			rootLayer = CALayer() // Sizing is inherited from the parent layer view in CAtoSwiftUIView
 			if let name = attributeDict["id"] {
 				rootLayer!.name = name
 			}
@@ -91,7 +90,7 @@ class SVGParserDelegate: NSObject, XMLParserDelegate {
 			if let name = attributeDict["id"] {
 				groupLayer.name = name
 			}
-			if let transform = attributeDict["transform"] { // Change this -----------------Change this -----------------Change this -----------------Change this -----------------Change this -----------------
+			if let transform = attributeDict["transform"] {
 				groupLayer.svgTransformString(transform)
 			}
 //			// Set z depth by its ordering in the SVG
@@ -104,9 +103,8 @@ class SVGParserDelegate: NSObject, XMLParserDelegate {
 		if elementName == "path" {
 			if attributeDict["id"] == "skeletonPath" {
 				// ASSUMED NO TRANSFORM HERE
-				
-				// Pull path attribute and set into absolute positions, type [CGPoint], length 20 expected
-				skeletonPoints = pathPoints(attributeDict["d"]!) // Could check here same length as the skeletonStructure
+				// Could check here same length as the skeletonStructure
+				skeletonPoints = pathPoints(attributeDict["d"]!)
 			} else {
 				let pathCAShapeLayer = addPathStyle(path: oldConvertPath(attributeDict["d"]!), pathStyle: attributeDict["style"]!)
 				if let name = attributeDict["id"] {
@@ -136,19 +134,16 @@ class SVGParserDelegate: NSObject, XMLParserDelegate {
 	// End of document
 	func parserDidEndDocument(_ parser: XMLParser) {
 		if debug {
-			//print("debugConsole: (Parent, Element): ", debugConsole)
+			print("debugConsole: (Parent, Element): ", debugConsole)
 		}
 		if skeletonStructure != nil && skeletonPoints != nil {
 			func createSkeletonLayer(joint: Joint, parentJoint: Joint?, parentLayer: CALayer) {
 				
-				// Set the position of the joint from SVG skeletonPath
 				joint.position = skeletonPoints![joint.id]
 				if let parent = parentJoint {
 					joint.parent = parent
 				}
-				print("Joint ID and position: ", joint.id, joint.position!) // Makes sense
 				
-				// Create layer to add onto the 'layerSkeleton'
 				let jointLayer = CAShapeLayer()
 				jointLayer.name = String(joint.id) // The layer name is only referred by the second joint in the bone
 				
@@ -164,18 +159,10 @@ class SVGParserDelegate: NSObject, XMLParserDelegate {
 					x: 0,
 					y: 0
 				)
-				// Calculate position relative to the anchorPoint, I think this is wrong -----------------------------------------------------------------------
 				jointLayer.position = CGPoint(
 					x: parentX - grandparentX,
 					y: parentY - grandparentY
 				)
-				
-				// TEMP ----TEMP ----TEMP ----TEMP ----TEMP ----TEMP ----TEMP ----TEMP ----TEMP ----TEMP ----TEMP
-				//			let radius: CGFloat = 10.0
-				//			let center = CGPoint(x: 0, y: 0)
-				//			let circlePath = UIBezierPath(arcCenter: center, radius: radius, startAngle: 0, endAngle: 2 * CGFloat.pi, clockwise: true)
-				//			jointLayer.path = circlePath.cgPath
-				// TEMP ----TEMP ----TEMP ----TEMP ----TEMP ----TEMP ----TEMP ----TEMP ----TEMP ----TEMP ----TEMP
 				parentLayer.addSublayer(jointLayer)
 				
 				if let svgComponent = layerDict[joint.id] {
@@ -183,13 +170,10 @@ class SVGParserDelegate: NSObject, XMLParserDelegate {
 						x: 0,
 						y: 0
 					)
-					// Because the anchorPoint is at (0,0), you'll want to draw the paths with the parentJoint at origin
+					// Draw the paths with the parentJoint at origin
 					let plainAnchor = CATransform3DMakeTranslation(-parentX, -parentY, 0)
-					//print("plainAnchor of joint \(joint.id): ", plainAnchor)
 					svgComponent.transform = CATransform3DConcat(svgComponent.transform, plainAnchor)
-					
 					jointLayer.addSublayer(svgComponent)
-					// You don't want the skeleton tree hierarchy to determine drawing order but the SVG's drawing order
 					jointLayer.zPosition = svgComponent.zPosition
 				}
 				

@@ -6,24 +6,36 @@ struct AnimatedLayerViewRepresentable: UIViewRepresentable {
 	private var svgUrl: URL
 	private var skeletonStructure: Joint?
 	private let closureAnimationLoaded: (() -> Void)?
+	private var sizeScaleFactor: CGFloat
+	private var UISize: CGSize // Probably not needed but wait till working with positioning
 	
 	/// Options for the View
 	private let clipsToBounds: Bool
 	
-	init(svgUrl: URL, skeletonStructure: Joint? = nil, closureAnimationLoaded: (() -> Void)? = nil, clipsToBounds: Bool) {
+	init(svgUrl: URL,
+		 skeletonStructure: Joint? = nil,
+		 closureAnimationLoaded: (() -> Void)? = nil,
+		 clipsToBounds: Bool,
+		 sizeScaleFactor: CGFloat,
+		 UISize: CGSize) {
 		self.svgUrl = svgUrl
 		self.skeletonStructure = skeletonStructure
 		self.closureAnimationLoaded = closureAnimationLoaded
 		self.clipsToBounds = clipsToBounds
+		self.sizeScaleFactor = sizeScaleFactor
+		self.UISize = UISize
 	}
 	
 	func makeUIView(context: Context) -> UIView {
-		let view = UIView()
+		let view = UIView() // frame: CGRect(x: 0, y: 0, width: UISize.width, height: UISize.height))
 		// Set options
 		view.clipsToBounds = clipsToBounds
+
 		do {
 			try SVGtoCALayer(url: svgUrl, skeletonStructure: skeletonStructure, closureOnFinish: { animationLayer in
 				DispatchQueue.main.async { // Ensure UI updates are on the main thread
+					
+					animationLayer.transform = CATransform3DScale(animationLayer.transform, sizeScaleFactor, sizeScaleFactor, 1)
 					view.layer.addSublayer(animationLayer)
 					closureAnimationLoaded?()
 					
@@ -42,22 +54,22 @@ struct AnimatedLayerViewRepresentable: UIViewRepresentable {
 		return view
 	}
 	
-	// TO DO ---------------------------------------------------------------------------------------------------------------------------------------------------------
-	// Updates the state of the specified view with new information from SwiftUI.
+	// To check out when animating:
+//	// Updates the state of the specified view with new information from SwiftUI.
 	func updateUIView(_ uiView: UIView, context: Context) {
-		// Update the layer size (or do any other updates needed)
-		let width = uiView.frame.width
-		let height = uiView.frame.height
-		
-		if let layer = uiView.layer.sublayers?.first {
-			layer.frame = CGRect(x: 0, y: 0, width: width, height: height)
-		}
+//		// Update the layer size (or do any other updates needed)
+//		let width = uiView.frame.width
+//		let height = uiView.frame.height
+//		
+//		if let layer = uiView.layer.sublayers?.first {
+//			layer.frame = CGRect(x: 0, y: 0, width: width, height: height)
+//		}
 	}
-	
-	func sizeThatFits(_ proposedSize: CGSize) -> CGSize {
-		// Return the size that fits your requirements here.
-		return CGSize(width: 100, height: 100) // Example size
-	}
+//	
+//	func sizeThatFits(_ proposedSize: CGSize) -> CGSize {
+//		// Return the size that fits your requirements here.
+//		return CGSize(width: 100, height: 100) // Example size
+//	}
 	
 	class Coordinator: NSObject, CAAnimationDelegate {
 		// Manage any coordination here, if needed.

@@ -16,7 +16,9 @@ The library parses the SVG data of a file, creates Core Graphics paths for each 
 
 The recommended way to access the framework is through the dedicated SwiftUI View:
 
-> SVGAnimationView(svgURL: _)
+```Swift
+SVGAnimationView // to do
+```
 
 with the svgURL being Foundation's URL struct of a file with extension '.svg'. The view, with no further inputs, will display the SVG as a resolution independent image scaled to the size of the frame. Therefore, this library can be used as an SVG to Core Graphics renderer also.
 
@@ -44,7 +46,7 @@ Parsing is done using an implementation of Foundation's XMLParser with InputStre
 
 To display the animation as a SwiftUI View, we use a UIViewRepresentable to have UIKit intermediate between SwiftUI and Core Animation, which is required since there's no official dedicated View for Core Animations in SwiftUI. There is a View for SpriteKit scenes, but SpriteKit has less functionality and low level control than Core Animation.
 
-<img src="Resources/ToSwiftUI.swift.png" width="840" height="480">
+<img src="Resources/ToSwiftUI.swift.png" width="910" height="520">
 
 ## To Do:
 
