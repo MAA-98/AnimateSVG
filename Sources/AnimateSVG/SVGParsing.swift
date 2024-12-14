@@ -2,7 +2,7 @@ import Foundation
 import QuartzCore
 import UIKit // temp for drawing shape
 
-func SVGtoCALayer(url: URL, skeletonStructure: Joint, closureOnFinish: @escaping (CALayer) -> Void) throws -> Void {
+func SVGtoCALayer(url: URL, skeletonStructure: Joint?, closureOnFinish: @escaping (CALayer) -> Void) throws -> Void {
 	do {
 		let (stream, parser) = try SVGParserFromFile(fileURL: url)
 		let parserDelegate = SVGParserDelegate(skeletonStructure: skeletonStructure, closureOnFinish: { animationLayer in
@@ -44,9 +44,9 @@ func SVGParserFromFile(fileURL: URL) throws -> (InputStream, XMLParser) {
 
 // Functions for the parser building up CALayer
 class SVGParserDelegate: NSObject, XMLParserDelegate {
-	private var skeletonStructure: Joint
+	private var skeletonStructure: Joint?
 	private var closureOnFinish: ((CALayer) -> Void)
-	init(skeletonStructure: Joint, closureOnFinish: @escaping ((CALayer) -> Void)) {
+	init(skeletonStructure: Joint? = nil, closureOnFinish: @escaping ((CALayer) -> Void)) {
 		self.closureOnFinish = closureOnFinish
 		self.skeletonStructure = skeletonStructure
 	}
@@ -138,69 +138,71 @@ class SVGParserDelegate: NSObject, XMLParserDelegate {
 		if debug {
 			//print("debugConsole: (Parent, Element): ", debugConsole)
 		}
-		func createSkeletonLayer(joint: Joint, parentJoint: Joint?, parentLayer: CALayer) {
-			
-			// Set the position of the joint from SVG skeletonPath
-			joint.position = skeletonPoints![joint.id]
-			if let parent = parentJoint {
-				joint.parent = parent
-			}
-			print("Joint ID and position: ", joint.id, joint.position!) // Makes sense
-			
-			// Create layer to add onto the 'layerSkeleton'
-			let jointLayer = CAShapeLayer()
-			jointLayer.name = String(joint.id) // The layer name is only referred by the second joint in the bone
-			
-			// Calculate position relative to the parent joint's position, first joint placed in center
-			let parentX = parentJoint?.position?.x ?? 0
-			let parentY = parentJoint?.position?.y ?? 0
-			
-			let grandparentX = parentJoint?.parent?.position?.x ?? 0
-			let grandparentY = parentJoint?.parent?.position?.y ?? 0
-			
-			// Set the anchorPoint as the normalized position of the joint
-			jointLayer.anchorPoint = CGPoint(
-				x: 0,
-				y: 0
-			)
-			// Calculate position relative to the anchorPoint, I think this is wrong -----------------------------------------------------------------------
-			jointLayer.position = CGPoint(
-				x: parentX - grandparentX,
-				y: parentY - grandparentY
-			)
-
-			// TEMP ----TEMP ----TEMP ----TEMP ----TEMP ----TEMP ----TEMP ----TEMP ----TEMP ----TEMP ----TEMP
-//			let radius: CGFloat = 10.0
-//			let center = CGPoint(x: 0, y: 0)
-//			let circlePath = UIBezierPath(arcCenter: center, radius: radius, startAngle: 0, endAngle: 2 * CGFloat.pi, clockwise: true)
-//			jointLayer.path = circlePath.cgPath
-			// TEMP ----TEMP ----TEMP ----TEMP ----TEMP ----TEMP ----TEMP ----TEMP ----TEMP ----TEMP ----TEMP
-			parentLayer.addSublayer(jointLayer)
-			
-			if let svgComponent = layerDict[joint.id] {
-				svgComponent.anchorPoint = CGPoint(
+		if skeletonStructure != nil && skeletonPoints != nil {
+			func createSkeletonLayer(joint: Joint, parentJoint: Joint?, parentLayer: CALayer) {
+				
+				// Set the position of the joint from SVG skeletonPath
+				joint.position = skeletonPoints![joint.id]
+				if let parent = parentJoint {
+					joint.parent = parent
+				}
+				print("Joint ID and position: ", joint.id, joint.position!) // Makes sense
+				
+				// Create layer to add onto the 'layerSkeleton'
+				let jointLayer = CAShapeLayer()
+				jointLayer.name = String(joint.id) // The layer name is only referred by the second joint in the bone
+				
+				// Calculate position relative to the parent joint's position, first joint placed in center
+				let parentX = parentJoint?.position?.x ?? 0
+				let parentY = parentJoint?.position?.y ?? 0
+				
+				let grandparentX = parentJoint?.parent?.position?.x ?? 0
+				let grandparentY = parentJoint?.parent?.position?.y ?? 0
+				
+				// Set the anchorPoint as the normalized position of the joint
+				jointLayer.anchorPoint = CGPoint(
 					x: 0,
 					y: 0
 				)
-				// Because the anchorPoint is at (0,0), you'll want to draw the paths with the parentJoint at origin
-				let plainAnchor = CATransform3DMakeTranslation(-parentX, -parentY, 0)
-				//print("plainAnchor of joint \(joint.id): ", plainAnchor)
-				svgComponent.transform = CATransform3DConcat(svgComponent.transform, plainAnchor)
-
-				jointLayer.addSublayer(svgComponent)
-				// You don't want the skeleton tree hierarchy to determine drawing order but the SVG's drawing order
-				jointLayer.zPosition = svgComponent.zPosition
-			}
-			
-			let children = joint.directedChildren
-			if !children.isEmpty {
-				for child in children {
-					let jointLayer =
-					createSkeletonLayer(joint: child, parentJoint: joint, parentLayer: jointLayer)
+				// Calculate position relative to the anchorPoint, I think this is wrong -----------------------------------------------------------------------
+				jointLayer.position = CGPoint(
+					x: parentX - grandparentX,
+					y: parentY - grandparentY
+				)
+				
+				// TEMP ----TEMP ----TEMP ----TEMP ----TEMP ----TEMP ----TEMP ----TEMP ----TEMP ----TEMP ----TEMP
+				//			let radius: CGFloat = 10.0
+				//			let center = CGPoint(x: 0, y: 0)
+				//			let circlePath = UIBezierPath(arcCenter: center, radius: radius, startAngle: 0, endAngle: 2 * CGFloat.pi, clockwise: true)
+				//			jointLayer.path = circlePath.cgPath
+				// TEMP ----TEMP ----TEMP ----TEMP ----TEMP ----TEMP ----TEMP ----TEMP ----TEMP ----TEMP ----TEMP
+				parentLayer.addSublayer(jointLayer)
+				
+				if let svgComponent = layerDict[joint.id] {
+					svgComponent.anchorPoint = CGPoint(
+						x: 0,
+						y: 0
+					)
+					// Because the anchorPoint is at (0,0), you'll want to draw the paths with the parentJoint at origin
+					let plainAnchor = CATransform3DMakeTranslation(-parentX, -parentY, 0)
+					//print("plainAnchor of joint \(joint.id): ", plainAnchor)
+					svgComponent.transform = CATransform3DConcat(svgComponent.transform, plainAnchor)
+					
+					jointLayer.addSublayer(svgComponent)
+					// You don't want the skeleton tree hierarchy to determine drawing order but the SVG's drawing order
+					jointLayer.zPosition = svgComponent.zPosition
+				}
+				
+				let children = joint.directedChildren
+				if !children.isEmpty {
+					for child in children {
+						let jointLayer =
+						createSkeletonLayer(joint: child, parentJoint: joint, parentLayer: jointLayer)
+					}
 				}
 			}
+			createSkeletonLayer(joint: skeletonStructure!, parentJoint: nil, parentLayer: rootLayer!)
 		}
-		createSkeletonLayer(joint: skeletonStructure, parentJoint: nil, parentLayer: rootLayer!)
 		closureOnFinish(rootLayer!)
 	}
 
@@ -224,7 +226,6 @@ extension CALayer {
 			self.transform = CATransform3DConcat(self.transform, translation)
 		}
 		if transform.first == "matrix" && transform.count == 7 {
-			// Create a 2x2 matrix
 			let a: CGFloat = Double(transform[1])!
 			let b: CGFloat = Double(transform[2])!
 			let c: CGFloat = Double(transform[3])!
@@ -253,28 +254,3 @@ func splitString(_ string: String) -> [String]? {
 	}
 	return nil
 }
-
-//func projectMatrix(_ matrix: [Double]) -> (Double, Double, Double) {
-//	// This function takes in a matrix and returns a projection of it onto the space spanned by rotation and axis scaling
-//	guard matrix.count == 4 else {
-//		fatalError("Matrix must have 4 elements")
-//	}
-//	// We have 4 simultaneous equations: Acos(angle) = matrix[0], -Bsin(angle) = matrix[2], Asin(angle) = matrix[1], Bcos(angle) = matrix[3]
-//	var angle = 0.0
-//	// In general, solutions do not have existence and uniqueness
-//	// Pythagoras on first column gives two possibilities for A, fix A>=0 for now
-//	let A = sqrt(pow(matrix[0], 2) + pow(matrix[1], 2))
-//	print("projectMatrix(matrix): A is: ",A)
-//	// cos(angle) = matrix[0]/A gives two possibilities for angle in [0,2*pi), use the sign of matrix[1]=A*sin(angle) for unique determination
-//	if matrix[1] >= 0 {
-//		angle = acos(matrix[0] / A)
-//	} else {
-//		angle = -acos(matrix[0] / A)
-//	}
-//	// Note: if A was instead fixed A<=0, then it would determine the negative of current angle
-//	let B = matrix[3]*A/matrix[0]
-//	let distance = abs(matrix[2] + matrix[1]*matrix[3]/matrix[0])
-//	print("projectMatrix(matrix): Distance: ",distance)
-//	// Return the found A, B, angle
-//	return (A, B, angle)
-//}

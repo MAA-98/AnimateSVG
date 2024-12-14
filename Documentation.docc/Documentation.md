@@ -40,4 +40,12 @@ Parsing is done using an implementation of Foundation's XMLParser with InputStre
 
 <img src="Resources/SVGParsing.swift.png" width="900" height="330">
 
+### Displaying SwiftUI View
 
+To display the animation as a SwiftUI View, we use a UIViewRepresentable to have UIKit intermediate between SwiftUI and Core Animation, which is required since there's no dedicated View for Core Animations in SwiftUI AFAIK. There is a View for SpriteKit scenes, but SpriteKit has less functionality and low level control than Core Animation.
+
+## To Do:
+
+- add sizing functionality, size changing with View size
+- clean up PathConverter.swift
+- clean up SVGParsing.swift

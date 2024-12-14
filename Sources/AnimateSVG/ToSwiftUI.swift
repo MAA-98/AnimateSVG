@@ -1,38 +1,62 @@
-
 import SwiftUI
 import UIKit
 
 // A wrapper for a UIView to integrate into SwiftUI
 struct AnimatedLayerViewRepresentable: UIViewRepresentable {
 	private var svgUrl: URL
-	private var skeletonStructure: Joint
-	private let closureAnimationLoaded: (() -> Void)
+	private var skeletonStructure: Joint?
+	private let closureAnimationLoaded: (() -> Void)?
 	
-	init(svgUrl: URL, skeletonStructure: Joint, closureAnimationLoaded: @escaping (() -> Void)) {
+	/// Options for the View
+	private let clipsToBounds: Bool
+	
+	init(svgUrl: URL, skeletonStructure: Joint? = nil, closureAnimationLoaded: (() -> Void)? = nil, clipsToBounds: Bool) {
 		self.svgUrl = svgUrl
 		self.skeletonStructure = skeletonStructure
 		self.closureAnimationLoaded = closureAnimationLoaded
+		self.clipsToBounds = clipsToBounds
 	}
 	
 	func makeUIView(context: Context) -> UIView {
 		let view = UIView()
+		// Set options
+		view.clipsToBounds = clipsToBounds
 		do {
 			try SVGtoCALayer(url: svgUrl, skeletonStructure: skeletonStructure, closureOnFinish: { animationLayer in
 				DispatchQueue.main.async { // Ensure UI updates are on the main thread
 					view.layer.addSublayer(animationLayer)
-					closureAnimationLoaded()
-					// SVG is loaded, but not animation?
-					// Probably make another function to call with closure to return animation data here
+					closureAnimationLoaded?()
+					
+					// TEMP ------ TEMP ------ TEMP ------ TEMP ------ TEMP ------ TEMP ------ TEMP ------ TEMP ------ TEMP ------ TEMP ------ TEMP ------
+					// Make another function to call with closure to return animation data here
 					let rotLayer = animationLayer.findLayer(withName: "6")
 					if let layer = rotLayer {
 						context.coordinator.startAnimation(for: layer)
 					}
+					// TEMP ------ TEMP ------ TEMP ------ TEMP ------ TEMP ------ TEMP ------ TEMP ------ TEMP ------ TEMP ------ TEMP ------ TEMP ------
 				}
 			})
 		} catch {
 			print("Error loading SVG: \(error)")
 		}
 		return view
+	}
+	
+	// TO DO ---------------------------------------------------------------------------------------------------------------------------------------------------------
+	// Updates the state of the specified view with new information from SwiftUI.
+	func updateUIView(_ uiView: UIView, context: Context) {
+		// Update the layer size (or do any other updates needed)
+		let width = uiView.frame.width
+		let height = uiView.frame.height
+		
+		if let layer = uiView.layer.sublayers?.first {
+			layer.frame = CGRect(x: 0, y: 0, width: width, height: height)
+		}
+	}
+	
+	func sizeThatFits(_ proposedSize: CGSize) -> CGSize {
+		// Return the size that fits your requirements here.
+		return CGSize(width: 100, height: 100) // Example size
 	}
 	
 	class Coordinator: NSObject, CAAnimationDelegate {
@@ -75,22 +99,6 @@ struct AnimatedLayerViewRepresentable: UIViewRepresentable {
 	func makeCoordinator() -> Coordinator {
 		Coordinator(self)
 	}
-	
-	// Updates the state of the specified view with new information from SwiftUI.
-	func updateUIView(_ uiView: UIView, context: Context) {
-		// Update the layer size (or do any other updates needed)
-		let width = uiView.frame.width
-		let height = uiView.frame.height
-		
-		if let layer = uiView.layer.sublayers?.first {
-			layer.frame = CGRect(x: 0, y: 0, width: width, height: height)
-		}
-	}
-	
-//	func sizeThatFits(_ proposedSize: CGSize) -> CGSize {
-//		// Return the size that fits your requirements here.
-//		return CGSize(width: 100, height: 100) // Example size
-//	}
 }
 
 extension CALayer {
