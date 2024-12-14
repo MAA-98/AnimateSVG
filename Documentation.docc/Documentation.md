@@ -44,7 +44,7 @@ Parsing is done using an implementation of Foundation's XMLParser with InputStre
 
 To display the animation as a SwiftUI View, we use a UIViewRepresentable to have UIKit intermediate between SwiftUI and Core Animation, which is required since there's no official dedicated View for Core Animations in SwiftUI. There is a View for SpriteKit scenes, but SpriteKit has less functionality and low level control than Core Animation.
 
-<img src="Resources/ToSwiftUI.swift.png" width="900" height="600">
+<img src="Resources/ToSwiftUI.swift.png" width="840" height="480">
 
 ## To Do:
 
