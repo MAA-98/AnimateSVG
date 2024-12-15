@@ -1,21 +1,30 @@
-//
-//  PathConverter.swift
-//
+///  PathConverter.swift
 
 import Foundation
 import CoreGraphics
 import QuartzCore
 
-// Extension to convert coordinate string to CGPoint
+/// Function: Initializer creating a point from a coordinate string that contains two comma-separated values, representing the x and y coordinates.
+/// Example: `CGPoint(string: "1.2,3")` returns the same value as `GCPoint(x: 1.2, y: 3.0)`.
+/// Error Handling: If splitting doesn't give two elements then an error is printed but parsing continues.
+/// 	If the split string is not parsed into two `Double` values, ingoring nil, the initializer will return `nil` value and print error.
 extension CGPoint{
 	init?(string: String) {
-		let coords = string.split(separator: ",").compactMap{Double($0)} // Will be nil if doesn't map to Double
+		
+		let coordsSplit = string.split(separator: ",")
+			
+		if coordsSplit.count != 2 {
+			print("Non-critical Non-nil Error: Error for input \(string): \(coordsSplit) does not have two elements.")
+		}
+		
+		let coords = coordsSplit.compactMap{Double($0)}
 		
 		if coords.count == 2 {
 			let x = coords[0]
 			let y = coords[1]
 			self.init(x: x, y: y)
 		} else {
+			print("Non-critical Nil Error: Error for input \(string): \(coords) does not have two elements.")
 			return nil
 		}
 	}
@@ -115,6 +124,7 @@ func convertPath(_ pathAttribute: String) -> CGPath {
 	return path
 }
 
+
 func addPathStyle(path: CGPath, pathStyle: String) -> CAShapeLayer {
 	let supportedCommands = ["fill", "stroke", "stroke-width"]
 	// Creating dict of styles
@@ -134,7 +144,7 @@ func addPathStyle(path: CGPath, pathStyle: String) -> CAShapeLayer {
 		if fillValue == "none" {
 			shapeLayer.fillColor = nil
 		} else {
-			shapeLayer.fillColor = CGColor.fromHex(hex: fillValue)!
+			shapeLayer.fillColor = CGColor.fromHex(hex: fillValue)! // Getting error here!?!?!?!?
 		}
 		// If there's stroke width, but no stroke (or stroke:none), then assume same color as fill:
 		if let strokeWidth = Double(commandsDict["stroke-width"]!) {
