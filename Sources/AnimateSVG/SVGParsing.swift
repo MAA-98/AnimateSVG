@@ -106,7 +106,7 @@ class SVGParserDelegate: NSObject, XMLParserDelegate {
 				// Could check here same length as the skeletonStructure
 				skeletonPoints = pathPoints(attributeDict["d"]!)
 			} else {
-				let pathCAShapeLayer = addPathStyle(path: oldConvertPath(attributeDict["d"]!), pathStyle: attributeDict["style"]!)
+				let pathCAShapeLayer = CAShapeLayer(path: oldConvertPath(attributeDict["d"]!), pathStyle: attributeDict["style"]!)
 				if let name = attributeDict["id"] {
 					pathCAShapeLayer.name = name
 				}
@@ -114,7 +114,7 @@ class SVGParserDelegate: NSObject, XMLParserDelegate {
 					pathCAShapeLayer.svgTransformString(transform)
 				}
 				pathCAShapeLayer.zPosition = zIndex
-				currentLayer!.addSublayer(pathCAShapeLayer)
+				currentLayer!.addSublayer(pathCAShapeLayer) // ERROR HERE?!?!?!?
 			}
 		}
 	}

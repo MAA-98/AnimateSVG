@@ -124,39 +124,54 @@ func convertPath(_ pathAttribute: String) -> CGPath {
 	return path
 }
 
-
-func addPathStyle(path: CGPath, pathStyle: String) -> CAShapeLayer {
-	let supportedCommands = ["fill", "stroke", "stroke-width"]
-	// Creating dict of styles
-	let commandsList = pathStyle.split(separator: ";").map { String($0) }
-	let commandsDict = commandsList.reduce(into: [String : String]()) { dict, string in
-		let components = string.split(separator: ":", maxSplits: 1).map { String($0) }
-		if supportedCommands.contains(components[0]) {
-			let key = String(components[0])
-			let value = String(components[1])
-			dict[key] = value
-		}
-	}
-	let shapeLayer = CAShapeLayer()
-	shapeLayer.path = path
-	
-	if let fillValue = commandsDict["fill"] {
-		if fillValue == "none" {
-			shapeLayer.fillColor = nil
-		} else {
-			shapeLayer.fillColor = CGColor.fromHex(hex: fillValue)! // Getting error here!?!?!?!?
-		}
-		// If there's stroke width, but no stroke (or stroke:none), then assume same color as fill:
-		if let strokeWidth = Double(commandsDict["stroke-width"]!) {
-			shapeLayer.lineWidth = strokeWidth
-			if let strokeValue = commandsDict["stroke"], strokeValue != "none"{
-				shapeLayer.strokeColor = CGColor.fromHex(hex: strokeValue)!
-			} else {
-				shapeLayer.strokeColor = shapeLayer.fillColor
+extension CAShapeLayer {
+	convenience init(path: CGPath, pathStyle: String) {
+		
+		let supportedCommands = ["fill", "stroke", "stroke-width"]
+		
+		let commandsList = pathStyle.split(separator: ";").map { String($0) }
+		let commandsDict = commandsList.reduce(into: [String : String]()) { dict, string in
+			let components = string.split(separator: ":", maxSplits: 1).map { String($0) }
+			if supportedCommands.contains(components[0]) {
+				let key = String(components[0])
+				let value = String(components[1])
+				dict[key] = value
 			}
 		}
+		self.init()
+		self.path = path
+		
+		if commandsDict["fill"] == nil {
+			print("Non-critical Non-nil error: fill in \(pathStyle) unrecognized.")
+		}
+		let fillValue = commandsDict["fill"] ?? "none"
+		
+		if fillValue == "none" {
+			self.fillColor = nil
+		} else {
+			self.fillColor = CGColor.fromHex(hex: fillValue)
+		}
+		
+		if commandsDict["stroke-width"] == nil {
+			print("Non-critical Non-nil error: stroke-width in \(pathStyle) unrecognized.")
+		}
+		let strokeWidth = Double(commandsDict["stroke-width"] ?? "0")
+		if strokeWidth == nil {
+			print("Non-critical Non-nil error: stroke-width in \(pathStyle) unrecognized as Double.")
+		}
+		self.lineWidth = strokeWidth ?? 0
+		
+		if commandsDict["stroke"] == nil {
+			print("Non-critical Non-nil error: stroke in \(pathStyle) unrecognized.")
+		}
+		let strokeValue = commandsDict["stroke"] ?? "none"
+		// If there's stroke width, but no stroke (or stroke:none), then assume same color as fill:
+		if strokeValue != "none"{
+			self.strokeColor = CGColor.fromHex(hex: strokeValue)
+		} else {
+			self.strokeColor = self.fillColor
+		}
 	}
-	return shapeLayer
 }
 
 // Extension to convert hex color string to CGColor
