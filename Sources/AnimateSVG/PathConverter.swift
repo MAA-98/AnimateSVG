@@ -195,20 +195,20 @@ func pathPoints(_ pathAttribute: String) -> [CGPoint] {
 		if ["M", "m", "C", "c", "L", "l", "Z", "z"].contains(command) {
 			cmd = command
 		} else {
-			if let coords = CGPoint(string: command), cmd != nil{
-				if Character(cmd!).isLowercase {
-					if pathPoints.isEmpty {
-						pathPoints.append(coords)
+			// command is either unsupported or coord
+			if let comm = cmd {
+				if let coords = CGPoint(string: command) {
+					
+					if Character(comm).isLowercase {
+						pathPoints.append((pathPoints.last ?? CGPoint.zero).applying(CGAffineTransform(translationX: coords.x, y: coords.y)))
 					} else {
-						pathPoints.append(pathPoints.last!.applying(CGAffineTransform(translationX: coords.x, y: coords.y)))
+						pathPoints.append(coords)
 					}
 				} else {
-					pathPoints.append(coords)
+					print("\(#function), \(pathAttribute) invalid coord (\(command)) or unsupported command.")
 				}
 			} else {
-				if ["M", "m", "C", "c", "L", "l", "Z", "z"].contains(command) {
-					cmd = command
-				}
+				print("\(#function), \(pathAttribute) seems invalid (unsupported command)")
 			}
 		}
 	}
