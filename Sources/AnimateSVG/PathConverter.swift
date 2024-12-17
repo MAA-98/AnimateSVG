@@ -30,108 +30,7 @@ extension CGPoint{
 	}
 }
 
-// An older version of the function, CURRENTLY IN USE
-func oldConvertPath(_ pathAttribute: String) -> CGPath {
-
-	let commands = pathAttribute.split(separator: " ").map { String($0) }
-	let supportedCommands = ["M", "m", "C", "c", "L", "l", "Z", "z"]
-	let path = CGMutablePath()
-	
-	var pointsBuffer: [CGPoint] = []
-	var cmd: String? = nil
-	var firstPoint: CGPoint? = nil
-	
-	for (index, command) in commands.enumerated() {
-		
-		// Check on command first, if a new command or is the last command then go into switch
-		if supportedCommands.contains(command) || index == commands.count - 1 {
-			// If last command is a coordinate, need to add to buffer
-			if index == commands.count - 1 {
-				if let coords = CGPoint(string: command) {
-					pointsBuffer.append(coords)
-				}
-			}
-			if cmd == nil {
-				cmd = command
-				continue
-				// Note if last command, not supported, and cmd is nil then there's no issue setting cmd as command
-			} else {
-				// Need to apply cmd to buffer
-				switch cmd {
-				case "M":
-					// If firstPoint is nil then update
-					if firstPoint == nil {
-						firstPoint = pointsBuffer.first
-					}
-					path.move(to: pointsBuffer.removeFirst())
-					// Implicit L
-					for point in pointsBuffer {
-						path.addLine(to: point)
-					}
-					pointsBuffer.removeAll()
-				case "m":
-					// If firstPoint is nil then update
-					if firstPoint == nil {
-						firstPoint = pointsBuffer.first
-					}
-					path.move(to: pointsBuffer.removeFirst())
-					// Implicit l
-					for point in pointsBuffer {
-						path.addLine(to: CGPointApplyAffineTransform(path.currentPoint, CGAffineTransform(translationX: point.x, y: point.y)))
-					}
-					pointsBuffer.removeAll()
-				case "C":
-					while pointsBuffer.count >= 3 {
-						let control1 = pointsBuffer.removeFirst()
-						let control2 = pointsBuffer.removeFirst()
-						let endPoint = pointsBuffer.removeFirst()
-						path.addCurve(to: endPoint, control1: control1, control2: control2)
-					}
-				case "c":
-					while pointsBuffer.count >= 3 {
-						var point = pointsBuffer.removeFirst()
-						let control1 = CGPointApplyAffineTransform(path.currentPoint, CGAffineTransform(translationX: point.x, y: point.y))
-						point = pointsBuffer.removeFirst()
-						let control2 = CGPointApplyAffineTransform(path.currentPoint, CGAffineTransform(translationX: point.x, y: point.y))
-						point = pointsBuffer.removeFirst()
-						let endPoint = CGPointApplyAffineTransform(path.currentPoint, CGAffineTransform(translationX: point.x, y: point.y))
-						path.addCurve(to: endPoint, control1: control1, control2: control2)
-					}
-				case "L":
-					for point in pointsBuffer {
-						path.addLine(to: point)
-					}
-					pointsBuffer.removeAll()
-				case "l":
-					for point in pointsBuffer {
-						path.addLine(to: CGPointApplyAffineTransform(path.currentPoint, CGAffineTransform(translationX: point.x, y: point.y)))
-					}
-					pointsBuffer.removeAll()
-				case "Z", "z":
-					path.addLine(to: firstPoint!) // Draw a line back to the first point
-				default:
-					// Not ever accessed
-					print("Unknown or unsupported command: \(cmd!)")
-				}
-				// Update cmd and continue
-				cmd = command
-				// Deal with when command is last in commands
-				if cmd == "Z" || cmd == "z" {
-					path.addLine(to: firstPoint!)
-				}
-			}
-		} else {
-			// Command either coordinate string or just unsupported/error
-			if let coords = CGPoint(string: command) {
-				pointsBuffer.append(coords)
-			}
-		}
-	}
-	return path
-}
-
-// An older version of the function, CURRENTLY UPDATING
-func old2ConvertPath(_ pathAttribute: String) -> CGPath {
+func convertPath(_ pathAttribute: String) -> CGPath {
 
 	let commands = pathAttribute.split(separator: " ").map { String($0) }
 	let supportedCommands = ["M", "m", "C", "c", "L", "l", "Z", "z"]
@@ -142,14 +41,16 @@ func old2ConvertPath(_ pathAttribute: String) -> CGPath {
 	var firstPoint: CGPoint? = nil
 	
 	// To do later: add HhVv commands
-	func drawCommand(_ command: String) {
+	func drawCommand() {
 		switch cmd {
 		case "M":
 			// If firstPoint is nil then update
 			if firstPoint == nil {
 				firstPoint = pointsBuffer.first
 			}
-			path.move(to: pointsBuffer.removeFirst())
+			if !pointsBuffer.isEmpty {
+				path.move(to: pointsBuffer.removeFirst())
+			}
 			// Implicit L
 			for point in pointsBuffer {
 				path.addLine(to: point)
@@ -160,7 +61,9 @@ func old2ConvertPath(_ pathAttribute: String) -> CGPath {
 			if firstPoint == nil {
 				firstPoint = pointsBuffer.first
 			}
-			path.move(to: pointsBuffer.removeFirst())
+			if !pointsBuffer.isEmpty {
+				path.move(to: pointsBuffer.removeFirst())
+			}
 			// Implicit l
 			for point in pointsBuffer {
 				path.addLine(to: CGPointApplyAffineTransform(path.currentPoint, CGAffineTransform(translationX: point.x, y: point.y)))
@@ -194,22 +97,20 @@ func old2ConvertPath(_ pathAttribute: String) -> CGPath {
 			}
 			pointsBuffer.removeAll()
 		case "Z", "z":
-			path.addLine(to: firstPoint!)
+			if let start = firstPoint {
+				path.addLine(to: start)
+			}
 		default:
-			// Not ever accessed
-			print("\(#function), Unknown or unsupported command: \(cmd!)")
+			// Only accessed when cmd = nil
+			// Clear any possible points added before a valid cmd
+			pointsBuffer.removeAll()
 		}
 	}
 	
 	for command in commands {
 		if supportedCommands.contains(command) {
-			if let comm = cmd {
-				// Apply cmd to buffer
-				drawCommand(comm)
-			} else {
-				// Clear any possible points added before valid command
-				pointsBuffer.removeAll()
-			}
+			// Apply cmd to buffer
+			drawCommand()
 			// Update cmd and continue
 			cmd = command
 		} else {
@@ -219,14 +120,8 @@ func old2ConvertPath(_ pathAttribute: String) -> CGPath {
 			}
 		}
 	}
-	
-	// If finished loop with non-empty buffer then need to draw finally
-	if let comm = cmd {
-		drawCommand(comm)
-	} else {
-		print("\(#function), \(pathAttribute) has no recognized commands.")
-	}
-	
+	// For cmd not nil and non empty buffer at end:
+	drawCommand()
 	return path
 }
 
@@ -297,7 +192,7 @@ func pathPoints(_ pathAttribute: String) -> [CGPoint] {
 	var cmd: String? = nil
 	
 	for command in commands {
-		if cmd == nil && ["M", "m", "C", "c", "L", "l", "Z", "z"].contains(command) {
+		if ["M", "m", "C", "c", "L", "l", "Z", "z"].contains(command) {
 			cmd = command
 		} else {
 			if let coords = CGPoint(string: command), cmd != nil{

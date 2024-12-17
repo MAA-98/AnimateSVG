@@ -106,7 +106,7 @@ class SVGParserDelegate: NSObject, XMLParserDelegate {
 				// Could check here same length as the skeletonStructure
 				skeletonPoints = pathPoints(attributeDict["d"]!)
 			} else {
-				let pathCAShapeLayer = CAShapeLayer(path: old2ConvertPath(attributeDict["d"]!), pathStyle: attributeDict["style"]!)
+				let pathCAShapeLayer = CAShapeLayer(path: convertPath(attributeDict["d"]!), pathStyle: attributeDict["style"]!)
 				if let name = attributeDict["id"] {
 					pathCAShapeLayer.name = name
 				}
