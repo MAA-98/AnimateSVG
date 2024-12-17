@@ -10,7 +10,7 @@ import QuartzCore
 /// 	If the split string is not parsed into two `Double` values, ingoring nil, the initializer will return `nil` value and print error.
 extension CGPoint{
 	init?(string: String) {
-		
+		 
 		let coordsSplit = string.split(separator: ",")
 			
 		if coordsSplit.count != 2 {
@@ -124,6 +124,24 @@ func convertPath(_ pathAttribute: String) -> CGPath {
 	return path
 }
 
+import Foundation
+
+infix operator ?!: NilCoalescingPrecedence
+
+func ?!<T>(lhs: T?, rhs: T) -> (T, Bool) {
+	(lhs ?? rhs, lhs == nil)
+}
+
+infix operator ~>: TernaryPrecedence
+
+func ~><T>(lhs: (T, Bool), rhs: String) -> T {
+	let (value, condition) = lhs
+	if condition {
+		print(rhs)
+	}
+	return value
+}
+
 extension CAShapeLayer {
 	convenience init(path: CGPath, pathStyle: String) {
 		
@@ -141,36 +159,15 @@ extension CAShapeLayer {
 		self.init()
 		self.path = path
 		
-		if commandsDict["fill"] == nil {
-			print("Non-critical Non-nil error: fill in \(pathStyle) unrecognized.")
-		}
-		let fillValue = commandsDict["fill"] ?? "none"
+		let fillValue = commandsDict["fill"] ?! "none" 						~> "\(#function), fill in \(pathStyle) unrecognized."
+		self.fillColor = fillValue == "none" ? nil : CGColor.fromHex(hex: fillValue)
 		
-		if fillValue == "none" {
-			self.fillColor = nil
-		} else {
-			self.fillColor = CGColor.fromHex(hex: fillValue)
-		}
+		let strokeWidth = Double(commandsDict["stroke-width"] ?! "0" 		~> "\(#function), stroke-width in \(pathStyle) unrecognized.")
+		self.lineWidth = strokeWidth ?! 0 									~> "\(#function), stroke-width in \(pathStyle) unrecognized as Double."
 		
-		if commandsDict["stroke-width"] == nil {
-			print("Non-critical Non-nil error: stroke-width in \(pathStyle) unrecognized.")
-		}
-		let strokeWidth = Double(commandsDict["stroke-width"] ?? "0")
-		if strokeWidth == nil {
-			print("Non-critical Non-nil error: stroke-width in \(pathStyle) unrecognized as Double.")
-		}
-		self.lineWidth = strokeWidth ?? 0
-		
-		if commandsDict["stroke"] == nil {
-			print("Non-critical Non-nil error: stroke in \(pathStyle) unrecognized.")
-		}
-		let strokeValue = commandsDict["stroke"] ?? "none"
 		// If there's stroke width, but no stroke (or stroke:none), then assume same color as fill:
-		if strokeValue != "none"{
-			self.strokeColor = CGColor.fromHex(hex: strokeValue)
-		} else {
-			self.strokeColor = self.fillColor
-		}
+		let strokeValue = commandsDict["stroke"] ?! "none" 					~> "\(#function), stroke in \(pathStyle) unrecognized."
+		self.strokeColor = strokeValue == "none" ? self.fillColor : CGColor.fromHex(hex: strokeValue)
 	}
 }
 
