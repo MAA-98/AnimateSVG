@@ -1,4 +1,6 @@
 ///  PathConverter.swift
+///  Generally cleaned up with error handling. Just needs documentation.
+///  Could add v, V, h, H commands functionality in convertPath, drawCommand.
 
 import Foundation
 import CoreGraphics
@@ -149,7 +151,7 @@ extension CAShapeLayer {
 		self.lineWidth = strokeWidth ?! 0 									~> "\(#function), stroke-width in \(pathStyle) unrecognized as Double."
 		
 		// If no stroke, assume same color as fill:
-		let strokeValue = commandsDict["stroke"] ?! "none" 					~> "\(#function), stroke in \(pathStyle) unrecognized."
+		let strokeValue = commandsDict["stroke"] ?! "none" 					~> "\(#function), stroke in \(pathStyle) unrecognized, value \"none\" used."
 		self.strokeColor = strokeValue == "none" ? self.fillColor : CGColor.fromHex(hex: strokeValue)
 	}
 }
@@ -204,6 +206,7 @@ func pathPoints(_ pathAttribute: String) -> [CGPoint] {
 					} else {
 						pathPoints.append(coords)
 					}
+					
 				} else {
 					print("\(#function), \(pathAttribute) invalid coord (\(command)) or unsupported command.")
 				}
