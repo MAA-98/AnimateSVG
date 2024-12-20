@@ -1,8 +1,5 @@
 ///  PathConverter.swift
 ///
-///  - Possible improvements:
-///   - Add v, V, h, H commands functionality in convertPath, drawCommand.
-///   - Add handling of SVG's attributes of style, rather than only supporting CSS style command.
 
 import Foundation
 import CoreGraphics

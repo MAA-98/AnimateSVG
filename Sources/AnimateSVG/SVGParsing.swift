@@ -99,7 +99,7 @@ class SVGParserDelegate: NSObject, XMLParserDelegate {
 			let key = groupLayer.name!.split(separator: "-").compactMap{ Int($0) }.last
 			layerDict.updateValue(groupLayer, forKey: key!)
 			currentLayer = groupLayer
-		}
+		}// IMPROVE ERROR HANDLING HERE!!!!---------------------	-----------	--------	----------		--------
 		if elementName == "path" {
 			if attributeDict["id"] == "skeletonPath" {
 				// ASSUMED NO TRANSFORM HERE

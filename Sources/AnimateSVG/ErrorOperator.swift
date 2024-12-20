@@ -9,12 +9,12 @@ precedencegroup CustomPrecedence {
 }
 
 infix operator ?!: CustomPrecedence
-public func ?!<T>(lhs: T?, rhs: T) -> (T, Bool) {
+func ?!<T>(lhs: T?, rhs: T) -> (T, Bool) {
 	(lhs ?? rhs, lhs == nil)
 }
 
 infix operator ~>: CustomPrecedence
-public func ~><T>(lhs: (T, Bool), rhs: String) -> T {
+func ~><T>(lhs: (T, Bool), rhs: String) -> T {
 	let (value, condition) = lhs
 	if condition {
 		print(rhs)
