@@ -1,10 +1,4 @@
-# ``AnimateSVG``
-
-Minimalist, performant, and seamless animation of SVGs. Interprets SVG paths as CGPaths and animates SVG groups as CALayers (QuartzCore).
-
-Quickly apply skeletal animation (rigging) to an SVG character by including the skeleton in the SVG file as a path, and the skeletal structure will be used in building up the CALayers, for instant ability to animate within the skeletal rig.
-
-## API Overview
+## API
 
 Supported SVG files have a limited structure that allows the framework to interpret it as animatable. The library can be used to automatically create an animation of a character, with only data to rotate the limbs being needed for a performant and resolution-independent skeleton animation. The library is intended for, but not limited to, the modern SwiftUI framework.
 
@@ -41,22 +35,3 @@ The view, with no further inputs, will display the SVG as a resolution independe
 ### Low priority:
 
 - A concurrent method of building the skeleton of CALayers and drawing the paths on the layers.
-
-## Implementation Details
-
-### Parsing SVG
-
-Parsing is done using an implementation of Foundation's XMLParser with InputStream. This is written in SVGParsing.swift and the methods of drawing the CGPaths are in PathConverter.swift. By default, the main CALayer is built with a buffered series of instructions:
-
-<img src="Resources/SVGParsing.swift.png" width="900" height="330">
-
-### Displaying SwiftUI View
-
-To display the animation as a SwiftUI View, we use a UIViewRepresentable to have UIKit intermediate between SwiftUI and Core Animation, which is required since there's no official dedicated View for Core Animations in SwiftUI. There is a View for SpriteKit scenes, but SpriteKit has less functionality and low level control than Core Animation.
-
-<img src="Resources/ToSwiftUI.swift.png" width="910" height="520">
-
-## To Do:
-
-- Animation
-
