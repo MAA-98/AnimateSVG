@@ -35,7 +35,7 @@ The main CALayer is built with a buffered series of instructions:
 
 ### Parsing SVG with Skeleton
 
-Skeleton structure is given by a DAG with a source joint being the input. For example, the skeleton structure:
+Skeleton structure is given by a DAG with a source `Joint` being the input. For example, the skeleton structure:
 
 ![Skeleton](skeleton)
 
@@ -66,6 +66,10 @@ Joint(id: 11, directedChildren:
 ```
 
 > Warning: For the skeleton mode, the SVG should be structured as only containing groups of paths (no higher level groups). Paths outside groups will be ignored for rendering.
+>
+> This is needed to distinguish between depth of rendering the images and the skeleton structure. Order the groups of paths so that the rendering depth is correct (it should display on the SVG editor as normal), and the parser will keep track of this as a [zPosition](https://developer.apple.com/documentation/quartzcore/calayer/1410884-zposition/). 
+
+The attachment of an SVG group to a bone using the `id` attribute is explained in [Getting Started](Sources/GettingStarted).
 
 In addition, the positions of the joints relative to the SVG are needed:
 
@@ -75,7 +79,7 @@ Example in Inkscape for the previous skeleton structure:
 
 ![skeletonPath](skeletonPath)
 
-> Warning: Currently, the skeleton path is assumed to not have any transformation attributes. It is best to not include it in a group.
+> Warning: Currently, the skeleton path is assumed to not have any transformation attributes. It is best to not include this path in a group.
 
 The parser builds the CALayers without attachment first, handling any transformations in the SVG components as affine transformations on the layers. At the end of parsing the document, it uses the `skeletonPath` and the source `Joint` to build the CALayer structure recursively.
 

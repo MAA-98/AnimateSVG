@@ -85,32 +85,33 @@ class SVGParserDelegate: NSObject, XMLParserDelegate {
 //			// viewBox gives the size of canvas to be displayed:
 //			scene = SKScene(size: CGSize(width: viewBox[2]!-viewBox[0]!, height: viewBox[3]!-viewBox[1]!))
 		}
-		if elementName == "g" { // FIX ERROR HANDLING HERE
+		if elementName == "g", let idAttribute = attributeDict["id"] {
 			let groupLayer = CALayer()
-			if let name = attributeDict["id"] {
-				groupLayer.name = name
-			}
+			groupLayer.name = idAttribute
 			if let transform = attributeDict["transform"] {
 				groupLayer.svgTransformString(transform)
 			}
-//			// Set z depth by its ordering in the SVG
+			// Set z depth by its ordering in the SVG
 			// NOTE FOR LATER: This is only for skeleton mode:
 			groupLayer.zPosition = zIndex
 			// Add to dict of layers
-			let key = groupLayer.name!.split(separator: "-").compactMap{ Int($0) }.last
-			layerDict.updateValue(groupLayer, forKey: key!)
-			currentLayer = groupLayer
+			if let key = idAttribute.split(separator: "-").compactMap({ Int($0) }).last {
+				layerDict.updateValue(groupLayer, forKey: key)
+				currentLayer = groupLayer
+			} else {
+				print("\(#function), group with id \(idAttribute) format not as required for skeleton rigging. Group ignored.")
+			}
+		} else {
+			print("\(#function), group with attributes \(attributeDict) missing id attribute. Group ignored.")
 		}
-		if elementName == "path" { // FIX ERROR HANDLING HERE
-			if attributeDict["id"] == "skeletonPath" {
+		if elementName == "path", let idAttribute = attributeDict["id"], let dAttribute = attributeDict["d"] {
+			if idAttribute == "skeletonPath" {
 				// ASSUMED NO TRANSFORM HERE
 				// Could check here same length as the skeletonStructure
-				skeletonPoints = pathPoints(attributeDict["d"]!)
-			} else if let dAttribute = attributeDict["d"], let styleAttribute = attributeDict["style"] {
+				skeletonPoints = pathPoints(dAttribute)
+			} else if let styleAttribute = attributeDict["style"] {
 				let pathLayer = CAShapeLayer(path: convertPath(dAttribute), pathStyle: styleAttribute)
-				if let name = attributeDict["id"] {
-					pathLayer.name = name
-				}
+				pathLayer.name = idAttribute
 				if let transform = attributeDict["transform"] {
 					pathLayer.svgTransformString(transform)
 				}
@@ -120,11 +121,13 @@ class SVGParserDelegate: NSObject, XMLParserDelegate {
 				if let currentLayer = currentLayer {
 					currentLayer.addSublayer(pathLayer)
 				} else {
-					print("\(#function), path id \(pathLayer.name ?? "(no id?)"), No current layer to add path to.")
+					print("\(#function), path attributes \(attributeDict), has no groupLayer to be in.")
 				}
 			} else {
-				print("\(#function), path with attributes \(attributeDict) was missing required attributes: d and style.")
+				print("\(#function), path with attributes \(attributeDict) was missing attribute: style.")
 			}
+		} else {
+			print("\(#function), path attributes \(attributeDict), has no required attributes: id and d. Path ignored.")
 		}
 	}
 
