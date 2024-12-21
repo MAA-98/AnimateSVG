@@ -50,7 +50,7 @@ class SVGParserDelegate: NSObject, XMLParserDelegate {
 		self.skeletonStructure = skeletonStructure
 	}
 	
-	var rootLayer: CALayer? = nil // The layer for the whole SVG
+	var rootLayer: CALayer = CALayer() // The layer for the whole SVG
 	var skeletonPoints: [CGPoint]? = nil // Positions of joints in the SVG
 	var zIndex: CGFloat = 0 // tracker for displaying layers as in SVG
 	var layerDict: [Int : CALayer] = [:] // Dict built up for the SVG components
@@ -73,9 +73,8 @@ class SVGParserDelegate: NSObject, XMLParserDelegate {
 			debugConsole.append(" \(elementName)")
 		}
 		if elementName == "svg" {
-			rootLayer = CALayer() // Sizing is inherited from the parent layer view in CAtoSwiftUIView
 			if let name = attributeDict["id"] {
-				rootLayer!.name = name
+				rootLayer.name = name
 			}
 //			// For sizing?
 //			guard let viewBox = attributeDict["viewBox"]?.split(separator: " ").map({ Double($0) }),
@@ -149,16 +148,18 @@ class SVGParserDelegate: NSObject, XMLParserDelegate {
 		if debug {
 			print("debugConsole: (Parent, Element): ", debugConsole)
 		}
-		if skeletonStructure != nil && skeletonPoints != nil { // FIX ERROR HANDLING HERE
+		if let skeletonStructure = skeletonStructure, let skeletonPoints = skeletonPoints {
+			
 			func createSkeletonLayer(joint: Joint, parentJoint: Joint?, parentLayer: CALayer) {
 				
-				joint.position = skeletonPoints![joint.id]
+				joint.position = skeletonPoints[joint.id]
 				if let parent = parentJoint {
 					joint.parent = parent
 				}
 				
 				let jointLayer = CALayer()
-				jointLayer.name = String(joint.id) // The layer name is only referred by the second joint in the bone
+				// The layer name is only referred by the second joint in the bone
+				jointLayer.name = String(joint.id)
 				
 				// Calculate position relative to the parent joint's position, first joint placed in center
 				let parentX = parentJoint?.position?.x ?? 0
@@ -167,7 +168,6 @@ class SVGParserDelegate: NSObject, XMLParserDelegate {
 				let grandparentX = parentJoint?.parent?.position?.x ?? 0
 				let grandparentY = parentJoint?.parent?.position?.y ?? 0
 				
-				// Set the anchorPoint as the normalized position of the joint
 				jointLayer.anchorPoint = CGPoint(
 					x: 0,
 					y: 0
@@ -187,20 +187,20 @@ class SVGParserDelegate: NSObject, XMLParserDelegate {
 					let plainAnchor = CATransform3DMakeTranslation(-parentX, -parentY, 0)
 					svgComponent.transform = CATransform3DConcat(svgComponent.transform, plainAnchor)
 					jointLayer.addSublayer(svgComponent)
+					// Inherit the zPosition
 					jointLayer.zPosition = svgComponent.zPosition
 				}
 				
 				let children = joint.directedChildren
 				if !children.isEmpty {
 					for child in children {
-						let jointLayer =
 						createSkeletonLayer(joint: child, parentJoint: joint, parentLayer: jointLayer)
 					}
 				}
 			}
-			createSkeletonLayer(joint: skeletonStructure!, parentJoint: nil, parentLayer: rootLayer!)
+			createSkeletonLayer(joint: skeletonStructure, parentJoint: nil, parentLayer: rootLayer)
 		}
-		closureOnFinish(rootLayer!)
+		closureOnFinish(rootLayer)
 	}
 
 	// Called if an error occurs
