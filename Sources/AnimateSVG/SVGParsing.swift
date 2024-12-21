@@ -99,22 +99,30 @@ class SVGParserDelegate: NSObject, XMLParserDelegate {
 			let key = groupLayer.name!.split(separator: "-").compactMap{ Int($0) }.last
 			layerDict.updateValue(groupLayer, forKey: key!)
 			currentLayer = groupLayer
-		}// IMPROVE ERROR HANDLING HERE!!!!---------------------	-----------	--------	----------		--------
+		}
 		if elementName == "path" {
 			if attributeDict["id"] == "skeletonPath" {
 				// ASSUMED NO TRANSFORM HERE
 				// Could check here same length as the skeletonStructure
 				skeletonPoints = pathPoints(attributeDict["d"]!)
-			} else {
-				let pathCAShapeLayer = CAShapeLayer(path: convertPath(attributeDict["d"]!), pathStyle: attributeDict["style"]!)
+			} else if let dAtribute = attributeDict["d"], let styleAttribute = attributeDict["style"] {
+				let pathCAShapeLayer = CAShapeLayer(path: convertPath(dAtribute), pathStyle: styleAttribute)
 				if let name = attributeDict["id"] {
 					pathCAShapeLayer.name = name
 				}
 				if let transform = attributeDict["transform"] {
 					pathCAShapeLayer.svgTransformString(transform)
 				}
+				// NOTE FOR LATER: This is only for skeleton mode:
 				pathCAShapeLayer.zPosition = zIndex
-				currentLayer!.addSublayer(pathCAShapeLayer) // ERROR HERE?!?!?!?
+				// If the path is not in a group, then not added
+				if let currentLayer = currentLayer {
+					currentLayer.addSublayer(pathCAShapeLayer)
+				} else {
+					print("\(#function), path id \(pathCAShapeLayer.name), No current layer to add path to.")
+				}
+			} else {
+				print("\(#function), path with attributes \(attributeDict) was missing required attributes: d and style.")
 			}
 		}
 	}
@@ -127,6 +135,7 @@ class SVGParserDelegate: NSObject, XMLParserDelegate {
 	func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?) {
 		if elementName == "g" {
 			currentLayer = currentLayer?.superlayer
+			// Only for skeleton mode:
 			zIndex += 1
 		}
 	}

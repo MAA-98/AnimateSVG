@@ -127,8 +127,10 @@ func convertPath(_ pathAttribute: String) -> CGPath {
 			}
 		default:
 			// In the logic of convertPath, this is only accessed when cmd = nil
-			print("\(#function), \(pathAttribute), drawCommand is called but cmd is nil. Clearing pointsBuffer.")
-			pointsBuffer.removeAll()
+			if !pointsBuffer.isEmpty {
+				print("\(#function), \(pathAttribute), drawCommand is called but cmd is nil. Clearing pointsBuffer \(pointsBuffer).")
+				pointsBuffer.removeAll()
+			}
 		}
 	}
 	
