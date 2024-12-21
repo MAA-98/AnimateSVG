@@ -85,7 +85,7 @@ class SVGParserDelegate: NSObject, XMLParserDelegate {
 //			// viewBox gives the size of canvas to be displayed:
 //			scene = SKScene(size: CGSize(width: viewBox[2]!-viewBox[0]!, height: viewBox[3]!-viewBox[1]!))
 		}
-		if elementName == "g" {
+		if elementName == "g" { // FIX ERROR HANDLING HERE
 			let groupLayer = CALayer()
 			if let name = attributeDict["id"] {
 				groupLayer.name = name
@@ -94,32 +94,33 @@ class SVGParserDelegate: NSObject, XMLParserDelegate {
 				groupLayer.svgTransformString(transform)
 			}
 //			// Set z depth by its ordering in the SVG
+			// NOTE FOR LATER: This is only for skeleton mode:
 			groupLayer.zPosition = zIndex
 			// Add to dict of layers
 			let key = groupLayer.name!.split(separator: "-").compactMap{ Int($0) }.last
 			layerDict.updateValue(groupLayer, forKey: key!)
 			currentLayer = groupLayer
 		}
-		if elementName == "path" {
+		if elementName == "path" { // FIX ERROR HANDLING HERE
 			if attributeDict["id"] == "skeletonPath" {
 				// ASSUMED NO TRANSFORM HERE
 				// Could check here same length as the skeletonStructure
 				skeletonPoints = pathPoints(attributeDict["d"]!)
-			} else if let dAtribute = attributeDict["d"], let styleAttribute = attributeDict["style"] {
-				let pathCAShapeLayer = CAShapeLayer(path: convertPath(dAtribute), pathStyle: styleAttribute)
+			} else if let dAttribute = attributeDict["d"], let styleAttribute = attributeDict["style"] {
+				let pathLayer = CAShapeLayer(path: convertPath(dAttribute), pathStyle: styleAttribute)
 				if let name = attributeDict["id"] {
-					pathCAShapeLayer.name = name
+					pathLayer.name = name
 				}
 				if let transform = attributeDict["transform"] {
-					pathCAShapeLayer.svgTransformString(transform)
+					pathLayer.svgTransformString(transform)
 				}
 				// NOTE FOR LATER: This is only for skeleton mode:
-				pathCAShapeLayer.zPosition = zIndex
+				pathLayer.zPosition = zIndex
 				// If the path is not in a group, then not added
 				if let currentLayer = currentLayer {
-					currentLayer.addSublayer(pathCAShapeLayer)
+					currentLayer.addSublayer(pathLayer)
 				} else {
-					print("\(#function), path id \(pathCAShapeLayer.name), No current layer to add path to.")
+					print("\(#function), path id \(pathLayer.name ?? "(no id?)"), No current layer to add path to.")
 				}
 			} else {
 				print("\(#function), path with attributes \(attributeDict) was missing required attributes: d and style.")
@@ -145,7 +146,7 @@ class SVGParserDelegate: NSObject, XMLParserDelegate {
 		if debug {
 			print("debugConsole: (Parent, Element): ", debugConsole)
 		}
-		if skeletonStructure != nil && skeletonPoints != nil {
+		if skeletonStructure != nil && skeletonPoints != nil { // FIX ERROR HANDLING HERE
 			func createSkeletonLayer(joint: Joint, parentJoint: Joint?, parentLayer: CALayer) {
 				
 				joint.position = skeletonPoints![joint.id]
@@ -153,7 +154,7 @@ class SVGParserDelegate: NSObject, XMLParserDelegate {
 					joint.parent = parent
 				}
 				
-				let jointLayer = CAShapeLayer()
+				let jointLayer = CALayer()
 				jointLayer.name = String(joint.id) // The layer name is only referred by the second joint in the bone
 				
 				// Calculate position relative to the parent joint's position, first joint placed in center
