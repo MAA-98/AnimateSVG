@@ -131,3 +131,68 @@ extension CALayer {
 		return nil
 	}
 }
+
+/// New version to work with new API:
+public struct SwiftUIView: UIViewRepresentable {
+	private var SVGAnimation: SVGAnimation
+	
+	public init(SVGAnimation: SVGAnimation) {
+		self.SVGAnimation = SVGAnimation
+	}
+	
+	public func makeUIView(context: Context) -> UIView {
+		let view = UIView()
+		view.clipsToBounds = SVGAnimation.clipsToBounds
+		if let layer = SVGAnimation.layer {
+			layer.transform = CATransform3DScale(layer.transform, SVGAnimation.sizeScaleFactor, SVGAnimation.sizeScaleFactor, 1)
+			view.layer.addSublayer(layer)
+		}
+		// TEMP ------ TEMP ------ TEMP ------ TEMP ------ TEMP ------ TEMP
+		let rotLayer = SVGAnimation.layer?.findLayer(withName: "6")
+		if let layer = rotLayer {
+			context.coordinator.startAnimation(for: layer)
+		}
+		// TEMP ------ TEMP ------ TEMP ------ TEMP ------ TEMP ------ TEMP
+		return view
+	}
+	
+	public func updateUIView(_ uiView: UIView, context: Context) {
+	}
+	
+	public class Coordinator: NSObject, CAAnimationDelegate {
+		// Manage any coordination here, if needed.
+		var parent: SwiftUIView
+		
+		init(_ parent: SwiftUIView) {
+			self.parent = parent
+		}
+		
+		// To start the animation
+		func startAnimation(for layer: CALayer) {
+			// Create a keyframe animation for rotation around the z-axis
+			let animation = CAKeyframeAnimation(keyPath: "transform.rotation.z")
+
+			// Define the keyframes for clockwise and counterclockwise rotations
+			animation.values = [Double.pi/2, 3*Double.pi / 4, Double.pi/2, 3*Double.pi / 4, Double.pi/2]
+
+			// Specify the duration for each keyframe (3 seconds for a full cycle)
+			animation.keyTimes = [0, 0.25, 0.5, 0.75, 1] // Corresponds to 0%, 25%, 50%, 75%, 100%
+			animation.duration = 6.0 // Total duration for one complete loop
+			animation.repeatCount = .infinity // Loop infinitely
+			
+			// Configure animation behavior
+			animation.fillMode = .forwards // Keep the final state after animation
+			animation.isRemovedOnCompletion = false // Prevent removal of the animation from the layer
+			animation.delegate = self // Set self as delegate if using delegate methods
+
+			layer.add(animation, forKey: "rotationAnimation")
+		}
+		
+		// Notify when animation is completed
+		public func animationDidStop(_ anim: CAAnimation, finished flag: Bool) {
+		}
+	}
+	public func makeCoordinator() -> Coordinator {
+		Coordinator(self)
+	}
+}

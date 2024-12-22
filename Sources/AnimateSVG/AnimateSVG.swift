@@ -74,3 +74,61 @@ public class Joint {
 		self.directedChildren = directedChildren
 	}
 }
+
+/// Example skeleton structure used:
+public struct ExampleSkeletonStructure {
+	public let skeleton = Joint(id: 11, directedChildren:
+			[Joint(id: 10, directedChildren:
+					[Joint(id: 1, directedChildren:
+							[Joint(id: 0, directedChildren: []),
+							 Joint(id: 2, directedChildren:
+									[Joint(id: 4, directedChildren:
+											[Joint(id: 6, directedChildren:
+													[Joint(id: 8, directedChildren: [])])])]),
+							 Joint(id: 3, directedChildren:
+									[Joint(id: 5, directedChildren:
+											[Joint(id: 7, directedChildren:
+													[Joint(id: 9, directedChildren: [])])])])])]),
+			 Joint(id: 12, directedChildren: [
+				Joint(id: 14, directedChildren: [
+					Joint(id: 16, directedChildren: [
+						Joint(id: 18, directedChildren: [])])])]),
+			 Joint(id: 13, directedChildren: [
+				Joint(id: 15, directedChildren: [
+					Joint(id: 17, directedChildren: [
+						Joint(id: 19, directedChildren: [])])])])])
+	
+	public init(){}
+}
+  
+/// New API for greater control
+public class SVGAnimation {
+	let svgUrl: URL
+	let skeletonStructure: Joint
+	var sizeScaleFactor: CGFloat
+	let clipsToBounds: Bool
+	
+	var layer: CALayer?
+	
+	public init(svgUrl: URL, skeletonStructure: Joint, sizeScaleFactor: CGFloat = 1, clipsToBounds: Bool = false) {
+		self.svgUrl = svgUrl
+		self.skeletonStructure = skeletonStructure
+		self.sizeScaleFactor = sizeScaleFactor
+		self.clipsToBounds = clipsToBounds
+	}
+	
+	public func loadLayer() {
+		do {
+			try SVGtoCALayer(url: svgUrl, skeletonStructure: skeletonStructure, closureOnFinish: { scene in
+				self.layer = scene
+			})
+		} catch {
+			print("Error loading SVG: \(error)")
+		}
+	}
+	
+	// TO DO
+	public func loadAnimation(){}
+
+}
+ 
