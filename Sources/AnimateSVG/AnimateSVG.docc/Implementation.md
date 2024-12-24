@@ -42,27 +42,31 @@ Skeleton structure is given by a DAG with a source `Joint` being the input. For 
 is given as the tree:
 
 ```swift
-let skeleton =
-Joint(id: 11, directedChildren:
-		[Joint(id: 10, directedChildren:
-				[Joint(id: 1, directedChildren:
-						[Joint(id: 0, directedChildren: []),
-						 Joint(id: 2, directedChildren:
-								[Joint(id: 4, directedChildren:
-										[Joint(id: 6, directedChildren:
-												[Joint(id: 8, directedChildren: [])])])]),
-						 Joint(id: 3, directedChildren:
-								[Joint(id: 5, directedChildren:
-										[Joint(id: 7, directedChildren:
-												[Joint(id: 9, directedChildren: [])])])])])]),
-		 Joint(id: 12, directedChildren: [
-			Joint(id: 14, directedChildren: [
-				Joint(id: 16, directedChildren: [
-					Joint(id: 18, directedChildren: [])])])]),
-		 Joint(id: 13, directedChildren: [
-			Joint(id: 15, directedChildren: [
-				Joint(id: 17, directedChildren: [
-					Joint(id: 19, directedChildren: [])])])])])
+/// Example skeleton structure used:
+public struct ExampleSkeletonStructure {
+	public let skeleton = Joint(id: 11, directedChildren:
+			[Joint(id: 10, directedChildren:
+					[Joint(id: 1, directedChildren:
+							[Joint(id: 0, directedChildren: []),
+							 Joint(id: 2, directedChildren:
+									[Joint(id: 4, directedChildren:
+											[Joint(id: 6, directedChildren:
+													[Joint(id: 8, directedChildren: [])])])]),
+							 Joint(id: 3, directedChildren:
+									[Joint(id: 5, directedChildren:
+											[Joint(id: 7, directedChildren:
+													[Joint(id: 9, directedChildren: [])])])])])]),
+			 Joint(id: 12, directedChildren: [
+				Joint(id: 14, directedChildren: [
+					Joint(id: 16, directedChildren: [
+						Joint(id: 18, directedChildren: [])])])]),
+			 Joint(id: 13, directedChildren: [
+				Joint(id: 15, directedChildren: [
+					Joint(id: 17, directedChildren: [
+						Joint(id: 19, directedChildren: [])])])])])
+	
+	public init(){}
+}
 ```
 
 > Warning: For the skeleton mode, the SVG should be structured as only containing groups of paths (no higher level groups). Paths outside groups will be ignored for rendering.

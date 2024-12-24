@@ -62,7 +62,7 @@ public struct SVGSkeletonAnimationView: View {
 	}
 }
 
-/// A tree node for the skeletal structure
+/// Tree node for the skeletal structure
 public class Joint {
 	let id: Int
 	let directedChildren: [Joint]
@@ -109,6 +109,7 @@ public class SVGAnimation {
 	let clipsToBounds: Bool
 	
 	var layer: CALayer?
+	var animation: CAAnimation?
 	
 	public init(svgUrl: URL, skeletonStructure: Joint, sizeScaleFactor: CGFloat = 1, clipsToBounds: Bool = false) {
 		self.svgUrl = svgUrl
@@ -128,7 +129,8 @@ public class SVGAnimation {
 	}
 	
 	// TO DO
-	public func loadAnimation(){}
+	public func loadAnimation(){
+	}
 
 }
  
