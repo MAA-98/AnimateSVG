@@ -17,12 +17,12 @@ The framework has no dependencies, beyond the standard libraries.
 
 ## Contents
 
-[User Guide](UserGuide/0-0)
+<doc:UserGuide>
 
 Instructions for using the API.
 
 
-[Code Guide](CodeGuide/0-0) 
+<doc:CodeGuide>
 
 In-depth documentation of the implementation.
 

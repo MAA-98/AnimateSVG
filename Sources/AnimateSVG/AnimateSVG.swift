@@ -1,5 +1,4 @@
 /// Client facing APIs.
-
 import SwiftUI
 
 /// Tree node for the skeletal structure
@@ -37,7 +36,6 @@ public struct ExampleSkeletonStructure {
 				Joint(id: 15, directedChildren: [
 					Joint(id: 17, directedChildren: [
 						Joint(id: 19, directedChildren: [])])])])])
-	
 	public init(){}
 }
   
