@@ -114,7 +114,7 @@ struct AnimatedLayerViewRepresentable: UIViewRepresentable {
 }
 
 extension CALayer {
-	func findLayer(withName name: String) -> CALayer? {
+	public func findLayer(withName name: String) -> CALayer? {
 		// Check if the current layer's name matches the target name.
 		if self.name == name {
 			return self // Return the current layer if it matches.
@@ -147,20 +147,17 @@ public struct SwiftUIView: UIViewRepresentable {
 			layer.transform = CATransform3DScale(layer.transform, SVGAnimation.sizeScaleFactor, SVGAnimation.sizeScaleFactor, 1)
 			view.layer.addSublayer(layer)
 		}
-		// TEMP ------ TEMP ------ TEMP ------ TEMP ------ TEMP ------ TEMP
-		let rotLayer = SVGAnimation.layer?.findLayer(withName: "6")
-		if let layer = rotLayer {
-			context.coordinator.startAnimation(for: layer)
-		}
-		// TEMP ------ TEMP ------ TEMP ------ TEMP ------ TEMP ------ TEMP
 		return view
 	}
 	
 	public func updateUIView(_ uiView: UIView, context: Context) {
 	}
 	
+	public func makeCoordinator() -> Coordinator {
+		Coordinator(self)
+	}
+	
 	public class Coordinator: NSObject, CAAnimationDelegate {
-		// Manage any coordination here, if needed.
 		var parent: SwiftUIView
 		
 		init(_ parent: SwiftUIView) {
@@ -191,8 +188,5 @@ public struct SwiftUIView: UIViewRepresentable {
 		// Notify when animation is completed
 		public func animationDidStop(_ anim: CAAnimation, finished flag: Bool) {
 		}
-	}
-	public func makeCoordinator() -> Coordinator {
-		Coordinator(self)
 	}
 }

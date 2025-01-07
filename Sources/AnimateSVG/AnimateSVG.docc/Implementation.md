@@ -71,7 +71,7 @@ public struct ExampleSkeletonStructure {
 
 > Warning: For the skeleton mode, the SVG should be structured as only containing groups of paths (no higher level groups). Paths outside groups will be ignored for rendering.
 >
-> This is needed to distinguish between depth of rendering the images and the skeleton structure. Order the groups of paths so that the rendering depth is correct (it should display on the SVG editor as normal), and the parser will keep track of this as a [zPosition](https://developer.apple.com/documentation/quartzcore/calayer/1410884-zposition/). 
+> This is needed to distinguish between depth of rendering the images and the skeleton structure. Order the groups of paths so that the rendering depth is correct (it should display in the SVG editor as intended to look), and the parser will keep track of this as a [zPosition](https://developer.apple.com/documentation/quartzcore/calayer/1410884-zposition/). 
 
 The attachment of an SVG group to a bone using the `id` attribute is explained in [Getting Started](Sources/GettingStarted).
 
@@ -88,6 +88,12 @@ Example in Inkscape for the previous skeleton structure:
 The parser builds the CALayers without attachment first, handling any transformations in the SVG components as affine transformations on the layers. At the end of parsing the document, it uses the `skeletonPath` and the source `Joint` to build the CALayer structure recursively.
 
 ![Creating layerDict](groupLayerParsing)
+
+The name of the `groupLayer` is the `id` of the group in the SVG, which should be of the form `"m-n"` for a group attached to the directed bone from joints with `id: m` and `id: n`. The name of the `jointLayer` is the last integer (as a string) in the `groupLayer`'s name, so just `"n"`. The `jointLayer` will be the one on which animations are added.
+
+### Animations with Skeleton
+
+To animate a skeleton, we use a linear interpolation of given angles to rotate by and the fps that the angles are given in. 
 
 ### Displaying SwiftUI View
 
