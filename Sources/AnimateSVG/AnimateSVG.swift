@@ -7,7 +7,7 @@ public class SVGLayer {
 	var scaleFactor: CGFloat
 	let clipsToBounds: Bool
 	
-	public var CALayer: CALayer?
+	public var caLayer: CALayer?
 	
 	public init(
 		svgUrl: URL,
@@ -26,9 +26,9 @@ public class SVGLayer {
 	// and perform completion with that new layer as the input.
 	public func loadLayer(completion: @escaping (CALayer) -> Void) {
 		do {
-			try SVGtoCALayer(url: svgUrl, skeletonStructure: skeletonStructure, closureOnFinish: { scene in
-				self.CALayer = scene
-				completion(scene)
+			try SVGtoCALayer(url: svgUrl, skeletonStructure: skeletonStructure, closureOnFinish: { layer in
+				self.caLayer = layer
+				completion(layer)
 			})
 		} catch {
 			print("Error loading SVG: \(error)")
@@ -36,7 +36,7 @@ public class SVGLayer {
 	}
 }
 
-/// Tree graph node for encoding the skeletal structure
+/// Tree graph node for encoding the skeletal structure.
 public class Joint {
 	let id: Int
 	let directedChildren: [Joint]
@@ -50,7 +50,7 @@ public class Joint {
 	}
 }
 
-/// An example of a skeleton structure
+/// An example of a skeleton structure.
 public struct ExampleSkeletonStructure {
 	public let skeleton = Joint(id: 11, directedChildren:
 			[Joint(id: 10, directedChildren:
