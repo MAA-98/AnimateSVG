@@ -22,4 +22,14 @@ The `skeletonStructure` as illustrated:
 
 ![Skeleton](skeleton)
 
-is the public example ``ExampleSkeletonStructure``.
+is the `public` example ``ExampleSkeletonStructure``.
+
+## ToSwiftUI.swift
+
+*Last updated: 08/01/2025*
+
+SwiftUI does not natively support Core Animation as a View, there is a View for SpriteKit scenes, but SpriteKit has less functionality and low level control than Core Animation, so we go around using UIKit with [UIViewRepresentable](https://developer.apple.com/documentation/swiftui/uiviewrepresentable/).
+
+### AnimateSVGView
+
+![ToSwiftUI.swift](ToSwiftUI.swift)
