@@ -144,7 +144,7 @@ public struct SwiftUIView: UIViewRepresentable {
 		let view = UIView()
 		view.clipsToBounds = SVGLayer.clipsToBounds
 		if let layer = SVGLayer.CALayer {
-			layer.transform = CATransform3DScale(layer.transform, SVGLayer.sizeScaleFactor, SVGLayer.sizeScaleFactor, 1)
+			layer.transform = CATransform3DScale(layer.transform, SVGLayer.scaleFactor, SVGLayer.scaleFactor, 1)
 			view.layer.addSublayer(layer)
 		}
 		return view
