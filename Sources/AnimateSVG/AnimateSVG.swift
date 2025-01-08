@@ -1,5 +1,36 @@
-/// Client facing APIs.
 import SwiftUI
+
+public class SVGLayer {
+	let svgUrl: URL
+	let skeletonStructure: Joint
+	var sizeScaleFactor: CGFloat
+	let clipsToBounds: Bool
+	
+	public var CALayer: CALayer?
+	
+	public init(
+		svgUrl: URL,
+		skeletonStructure: Joint,
+		sizeScaleFactor: CGFloat = 1,
+		clipsToBounds: Bool = false
+	) {
+		self.svgUrl = svgUrl
+		self.skeletonStructure = skeletonStructure
+		self.sizeScaleFactor = sizeScaleFactor
+		self.clipsToBounds = clipsToBounds
+	}
+	
+	public func loadLayer(loadFinishedClosure: @escaping (CALayer) -> Void) {
+		do {
+			try SVGtoCALayer(url: svgUrl, skeletonStructure: skeletonStructure, closureOnFinish: { scene in
+				self.CALayer = scene
+				loadFinishedClosure(scene)
+			})
+		} catch {
+			print("Error loading SVG: \(error)")
+		}
+	}
+}
 
 /// Tree node for the skeletal structure
 public class Joint {
@@ -37,39 +68,6 @@ public struct ExampleSkeletonStructure {
 					Joint(id: 17, directedChildren: [
 						Joint(id: 19, directedChildren: [])])])])])
 	public init(){}
-}
-  
-/// New API for greater control
-public class SVGAnimation {
-	let svgUrl: URL
-	let skeletonStructure: Joint
-	var sizeScaleFactor: CGFloat
-	let clipsToBounds: Bool
-	
-	public var layer: CALayer?
-	
-	public init(
-		svgUrl: URL,
-		skeletonStructure: Joint,
-		sizeScaleFactor: CGFloat = 1,
-		clipsToBounds: Bool = false
-	) {
-		self.svgUrl = svgUrl
-		self.skeletonStructure = skeletonStructure
-		self.sizeScaleFactor = sizeScaleFactor
-		self.clipsToBounds = clipsToBounds
-	}
-	
-	public func loadLayer(loadFinishedClosure: @escaping (CALayer) -> Void) {
-		do {
-			try SVGtoCALayer(url: svgUrl, skeletonStructure: skeletonStructure, closureOnFinish: { scene in
-				self.layer = scene
-				loadFinishedClosure(scene)
-			})
-		} catch {
-			print("Error loading SVG: \(error)")
-		}
-	}
 }
 
 // DEPRACATED? ------------------------------------------------------------------------------------------------------------------------------------------------------------------

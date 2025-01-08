@@ -134,17 +134,17 @@ extension CALayer {
 
 /// New version to work with new API:
 public struct SwiftUIView: UIViewRepresentable {
-	private var SVGAnimation: SVGAnimation
+	private var SVGLayer: SVGLayer
 	
-	public init(SVGAnimation: SVGAnimation) {
-		self.SVGAnimation = SVGAnimation
+	public init(SVGLayer: SVGLayer) {
+		self.SVGLayer = SVGLayer
 	}
 	
 	public func makeUIView(context: Context) -> UIView {
 		let view = UIView()
-		view.clipsToBounds = SVGAnimation.clipsToBounds
-		if let layer = SVGAnimation.layer {
-			layer.transform = CATransform3DScale(layer.transform, SVGAnimation.sizeScaleFactor, SVGAnimation.sizeScaleFactor, 1)
+		view.clipsToBounds = SVGLayer.clipsToBounds
+		if let layer = SVGLayer.CALayer {
+			layer.transform = CATransform3DScale(layer.transform, SVGLayer.sizeScaleFactor, SVGLayer.sizeScaleFactor, 1)
 			view.layer.addSublayer(layer)
 		}
 		return view
